@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Friends Messages - Auth System</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #1f2937;
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,0.2), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(255,255,255,0.16), transparent 24%),
+        linear-gradient(135deg, #6174ff, #8a56c6);
+      padding: 18px;
+    }
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .nav-btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      background: rgba(255,255,255,0.16);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.16);
+    }
+    .shell {
+      max-width: 1120px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.98);
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+      overflow: hidden;
+    }
+    .header {
+      padding: 24px;
+      color: #fff;
+      background: linear-gradient(135deg, #667eea, #7a52b5);
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+    .header p {
+      margin: 8px 0 0;
+      opacity: 0.9;
+    }
+    .notice {
+      display: none;
+      margin: 16px;
+      margin-bottom: 0;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+    }
+    .notice.show { display: block; }
+    .error { background: #fee2e2; color: #b91c1c; }
+    .success { background: #dcfce7; color: #166534; }
+    .layout {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      gap: 16px;
+      padding: 16px;
+    }
+    .panel {
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .panel-title {
+      margin: 0 0 12px;
+      font-size: 20px;
+      color: #111827;
+    }
+    .friend-list {
+      display: grid;
+      gap: 10px;
+      max-height: 540px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+    .friend-item {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .friend-item.active {
+      border-color: #667eea;
+      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+    }
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #dbe4ff;
+      flex: 0 0 auto;
+    }
+    .friend-copy {
+      min-width: 0;
+    }
+    .friend-copy strong,
+    .friend-copy small {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .friend-copy small {
+      color: #6b7280;
+      margin-top: 3px;
+    }
+    .chat-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .chat-title {
+      margin: 0;
+      font-size: 18px;
+      color: #111827;
+    }
+    .chat-box {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      min-height: 440px;
+      max-height: 440px;
+      overflow: auto;
+      padding: 12px;
+      display: grid;
+      align-content: start;
+      gap: 8px;
+    }
+    .bubble {
+      max-width: 72%;
+      border-radius: 14px;
+      padding: 10px 12px;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+    .bubble.self {
+      margin-left: auto;
+      background: #667eea;
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .bubble.other {
+      margin-right: auto;
+      background: #eef2ff;
+      color: #1f2937;
+      border-bottom-left-radius: 4px;
+    }
+    .meta {
+      margin-top: 5px;
+      font-size: 11px;
+      opacity: 0.7;
+    }
+    .composer {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+    }
+    .composer input {
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 15px;
+      outline: none;
+    }
+    .composer input:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12);
+    }
+    .send-btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 0 16px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, #667eea, #7a52b5);
+      cursor: pointer;
+    }
+    .empty {
+      color: #6b7280;
+      font-size: 14px;
+    }
+    @media (max-width: 800px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .chat-box {
+        min-height: 300px;
+        max-height: 300px;
+      }
+      .bubble {
+        max-width: 85%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-nav">
+    <button class="nav-btn" type="button" onclick="goHome()">Home</button>
+    <button class="nav-btn" type="button" onclick="goDashboard()">Dashboard</button>
+  </div>
+
+  <div class="shell">
+    <div class="header">
+      <h1>Friends & Messages</h1>
+      <p>Select a friend and start chatting</p>
+    </div>
+
+    <div id="notice" class="notice"></div>
+
+    <div class="layout">
+      <aside class="panel">
+        <h2 class="panel-title">Your Friends</h2>
+        <div id="friendList" class="friend-list"></div>
+      </aside>
+
+      <section class="panel">
+        <div class="chat-head">
+          <h2 id="chatTitle" class="chat-title">Choose a friend</h2>
+        </div>
+        <div id="chatBox" class="chat-box">
+          <div class="empty">No conversation selected.</div>
+        </div>
+        <form id="composer" class="composer">
+          <input id="messageInput" type="text" maxlength="1000" placeholder="Type a message..." autocomplete="off" disabled>
+          <button id="sendBtn" class="send-btn" type="submit" disabled>Send</button>
+        </form>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const BASE_ORIGIN = window.location.origin && window.location.origin !== 'null'
+      ? window.location.origin
+      : 'http://localhost:5000';
+    const SOCIAL_API_URL = `${BASE_ORIGIN}/api/social`;
+
+    let token = '';
+    let friends = [];
+    let selectedFriendId = '';
+    let refreshTimer = null;
+
+    function goHome() {
+      window.location.href = `${BASE_ORIGIN}/`;
+    }
+
+    function goDashboard() {
+      window.location.href = `${BASE_ORIGIN}/dashboard.html`;
+    }
+
+    function showNotice(message, type = 'success') {
+      const notice = document.getElementById('notice');
+      notice.textContent = message;
+      notice.className = `notice ${type} show`;
+    }
+
+    function hideNotice() {
+      const notice = document.getElementById('notice');
+      notice.className = 'notice';
+      notice.textContent = '';
+    }
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function defaultAvatar(name) {
+      const initial = (name || '?').trim().charAt(0).toUpperCase();
+      return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+          <rect width="200" height="200" rx="100" fill="#667eea"></rect>
+          <text x="100" y="118" font-size="84" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif">${initial}</text>
+        </svg>
+      `)}`;
+    }
+
+    function avatarSource(photo, name) {
+      return photo || defaultAvatar(name);
+    }
+
+    function renderFriends() {
+      const list = document.getElementById('friendList');
+
+      if (!friends.length) {
+        list.innerHTML = '<div class="empty">No friends yet. Send and accept friend requests first.</div>';
+        return;
+      }
+
+      list.innerHTML = friends.map((friend) => `
+        <button class="friend-item ${selectedFriendId === friend.id ? 'active' : ''}" type="button" onclick="selectFriend('${escapeHtml(friend.id)}')">
+          <img class="avatar" src="${escapeHtml(avatarSource(friend.photo, friend.name))}" alt="${escapeHtml(friend.name)}">
+          <div class="friend-copy">
+            <strong>${escapeHtml(friend.name || 'Unknown')}</strong>
+            <small>@${escapeHtml(friend.username || 'user')}</small>
+          </div>
+        </button>
+      `).join('');
+    }
+
+    function renderMessages(messages) {
+      const chatBox = document.getElementById('chatBox');
+
+      if (!messages.length) {
+        chatBox.innerHTML = '<div class="empty">No messages yet. Say hello.</div>';
+        return;
+      }
+
+      chatBox.innerHTML = messages.map((message) => `
+        <div class="bubble ${message.fromSelf ? 'self' : 'other'}">
+          <div>${escapeHtml(message.text)}</div>
+          <div class="meta">${new Date(message.createdAt).toLocaleString()}</div>
+        </div>
+      `).join('');
+
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function loadFriends() {
+      const response = await fetch(`${SOCIAL_API_URL}/friends`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Could not load friends');
+      }
+
+      friends = data.friends || [];
+      if (!selectedFriendId && friends.length) {
+        selectedFriendId = friends[0].id;
+      }
+
+      if (selectedFriendId && !friends.some((friend) => friend.id === selectedFriendId)) {
+        selectedFriendId = friends.length ? friends[0].id : '';
+      }
+
+      renderFriends();
+    }
+
+    async function loadMessages() {
+      if (!selectedFriendId) {
+        document.getElementById('chatTitle').textContent = 'Choose a friend';
+        document.getElementById('chatBox').innerHTML = '<div class="empty">No conversation selected.</div>';
+        document.getElementById('messageInput').disabled = true;
+        document.getElementById('sendBtn').disabled = true;
+        return;
+      }
+
+      const friend = friends.find((item) => item.id === selectedFriendId);
+      document.getElementById('chatTitle').textContent = friend ? `Chat with ${friend.name}` : 'Chat';
+      document.getElementById('messageInput').disabled = false;
+      document.getElementById('sendBtn').disabled = false;
+
+      const response = await fetch(`${SOCIAL_API_URL}/messages/${encodeURIComponent(selectedFriendId)}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Could not load messages');
+      }
+
+      renderMessages(data.messages || []);
+    }
+
+    function selectFriend(friendId) {
+      selectedFriendId = friendId;
+      renderFriends();
+      loadMessages().catch((error) => {
+        showNotice(error.message || 'Could not load conversation', 'error');
+      });
+    }
+
+    async function sendMessage(event) {
+      event.preventDefault();
+      hideNotice();
+
+      if (!selectedFriendId) {
+        showNotice('Choose a friend first', 'error');
+        return;
+      }
+
+      const input = document.getElementById('messageInput');
+      const text = input.value.trim();
+      if (!text) {
+        return;
+      }
+
+      const response = await fetch(`${SOCIAL_API_URL}/messages/${encodeURIComponent(selectedFriendId)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ text })
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Could not send message');
+      }
+
+      input.value = '';
+      await loadMessages();
+    }
+
+    async function initPage() {
+      token = localStorage.getItem('token') || '';
+      if (!token) {
+        goHome();
+        return;
+      }
+
+      try {
+        await loadFriends();
+        await loadMessages();
+
+        if (refreshTimer) {
+          clearInterval(refreshTimer);
+        }
+
+        refreshTimer = setInterval(() => {
+          loadFriends()
+            .then(() => loadMessages())
+            .catch(() => {});
+        }, 4000);
+      } catch (error) {
+        showNotice(error.message || 'Could not load messages page', 'error');
+      }
+    }
+
+    document.getElementById('composer').addEventListener('submit', (event) => {
+      sendMessage(event).catch((error) => {
+        showNotice(error.message || 'Could not send message', 'error');
+      });
+    });
+
+    window.addEventListener('beforeunload', () => {
+      if (refreshTimer) {
+        clearInterval(refreshTimer);
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', initPage);
+  </script>
+</body>
+</html>

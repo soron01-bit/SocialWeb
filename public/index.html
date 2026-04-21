@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auth System</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #6174ff, #8a56c6);
+      color: #1f2937;
+    }
+    .container {
+      width: 100%;
+      max-width: 1120px;
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    }
+    .header {
+      padding: 28px 24px;
+      text-align: center;
+      color: #fff;
+      background: linear-gradient(135deg, #667eea, #7a52b5);
+    }
+    .header h1 { margin: 0; font-size: 34px; }
+    .header p { margin: 8px 0 0; opacity: 0.9; }
+    .content { padding: 28px; }
+    .notice {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-bottom: 18px;
+      font-size: 14px;
+    }
+    .notice.show { display: block; }
+    .error { background: #fee2e2; color: #b91c1c; }
+    .success { background: #dcfce7; color: #166534; }
+    .dashboard {
+      display: none;
+      margin-bottom: 22px;
+    }
+    .dashboard.active { display: block; }
+    .dashboard-quick-links {
+      position: sticky;
+      top: 10px;
+      z-index: 4;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding: 10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(4px);
+      overflow-x: auto;
+    }
+    .quick-link-btn {
+      border: 1px solid #c7d2fe;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #374151;
+      background: #eef2ff;
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+    .quick-link-btn.active {
+      color: #fff;
+      border-color: #667eea;
+      background: linear-gradient(135deg, #667eea, #7a52b5);
+    }
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+    .profile-sidebar,
+    .dashboard-main {
+      display: grid;
+      gap: 18px;
+    }
+    .profile-sidebar {
+      position: sticky;
+      top: 18px;
+      align-self: start;
+    }
+    .profile-card,
+    .panel-card {
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 22px;
+      border: 1px solid #e5e7eb;
+    }
+    .avatar {
+      width: 132px;
+      height: 132px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 5px solid #667eea;
+      box-shadow: 0 12px 28px rgba(102, 126, 234, 0.18);
+      background: #e5e7eb;
+      flex: 0 0 auto;
+      display: block;
+      margin: 0 auto 16px;
+    }
+    .welcome { margin: 0; font-size: 28px; color: #111827; text-align: center; }
+    .muted { color: #6b7280; margin: 4px 0 0; text-align: center; }
+    .profile-handle {
+      margin: 10px 0 0;
+      text-align: center;
+      font-weight: 700;
+      color: #667eea;
+    }
+    .profile-stats {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .info-item {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .info-label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+    .info-value { font-weight: 700; word-break: break-word; }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .form-hidden { display: none; }
+    form { display: block; }
+    .form-title {
+      margin: 0 0 18px;
+      text-align: center;
+      font-size: 32px;
+    }
+    .form-group { margin-bottom: 16px; }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 700;
+      color: #111827;
+    }
+    input {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+    }
+    input:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12); }
+    small { display: block; margin-top: 6px; color: #6b7280; }
+    .btn {
+      width: 100%;
+      border: 0;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { color: #fff; background: linear-gradient(135deg, #667eea, #7a52b5); }
+    .btn-secondary {
+      margin-top: 12px;
+      color: #667eea;
+      background: transparent;
+      border: 2px solid #667eea;
+    }
+    .btn-danger {
+      margin-top: 18px;
+      color: #fff;
+      background: #ef4444;
+    }
+    .btn-ghost {
+      margin-top: 12px;
+      color: #111827;
+      background: #e5e7eb;
+    }
+    .edit-panel {
+      display: none;
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .edit-panel.active {
+      display: block;
+    }
+    .edit-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .sidebar-actions {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .loading {
+      display: none;
+      margin: 10px 0 14px;
+      text-align: center;
+      color: #667eea;
+      font-size: 14px;
+    }
+    .social-block {
+      margin-top: 18px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .social-title {
+      margin: 0 0 10px;
+      font-size: 18px;
+      color: #111827;
+    }
+    .post-input {
+      min-height: 90px;
+      resize: vertical;
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 15px;
+      outline: none;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    .post-input:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12); }
+    .inline-list {
+      display: grid;
+      gap: 10px;
+    }
+    .list-item {
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 10px;
+      background: #f9fafb;
+    }
+    .list-item.compact {
+      padding: 12px;
+    }
+    .list-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .list-person {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .mini-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #dbe4ff;
+      flex: 0 0 auto;
+    }
+    .feed-avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #dbe4ff;
+      flex: 0 0 auto;
+    }
+    .person-copy {
+      min-width: 0;
+    }
+    .small-note {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+    .mini-btn {
+      border: 0;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      background: #667eea;
+      white-space: nowrap;
+    }
+    .mini-btn[disabled] {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .post-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 12px;
+      background: #ffffff;
+    }
+    .post-meta {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+    .post-image {
+      width: 100%;
+      margin-top: 10px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      object-fit: cover;
+      max-height: 420px;
+      background: #f3f4f6;
+    }
+    .post-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .action-btn {
+      border: 1px solid #c7d2fe;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #374151;
+      background: #eef2ff;
+      cursor: pointer;
+    }
+    .action-btn-danger {
+      border-color: #fecaca;
+      color: #b91c1c;
+      background: #fee2e2;
+    }
+    .comments-wrap {
+      margin-top: 10px;
+      display: grid;
+      gap: 8px;
+    }
+    .comment-item {
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+    .comment-form {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+    .comment-input {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 14px;
+    }
+    .post-edit-form {
+      margin-top: 10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 10px;
+      background: #f8fafc;
+      display: grid;
+      gap: 8px;
+    }
+    .post-edit-text {
+      width: 100%;
+      min-height: 80px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 14px;
+      resize: vertical;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    .post-edit-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      margin-right: 8px;
+      border: 2px solid #e5e7eb;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: -4px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 700px) {
+      .container { padding: 12px; }
+      .content { padding: 18px; }
+      .dashboard-layout { grid-template-columns: 1fr; }
+      .profile-sidebar { position: static; }
+      .info-grid, .form-row, .edit-actions { grid-template-columns: 1fr; }
+      .dashboard-quick-links { display: grid; grid-template-columns: 1fr 1fr; }
+      .quick-link-btn { width: 100%; }
+      .comment-form { grid-template-columns: 1fr; }
+      .post-edit-actions { display: grid; grid-template-columns: 1fr; }
+      .welcome { font-size: 24px; }
+      .form-title { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="header">
+        <h1>🔐 Auth System</h1>
+        <p>Node.js Authentication</p>
+      </div>
+
+      <div class="content">
+        <div id="errorMsg" class="notice error"></div>
+        <div id="successMsg" class="notice success"></div>
+
+        <section id="dashboard" class="dashboard">
+          <div class="dashboard-quick-links">
+            <button type="button" id="homeViewBtn" class="quick-link-btn" onclick="setDashboardView('home')">Home</button>
+            <button type="button" id="dashboardViewBtn" class="quick-link-btn" onclick="setDashboardView('dashboard')">Account Dashboard</button>
+            <button type="button" id="friendsViewBtn" class="quick-link-btn" onclick="setDashboardView('friends')">Friends List</button>
+            <button type="button" id="findFriendsViewBtn" class="quick-link-btn" onclick="setDashboardView('findFriends')">Find Friends</button>
+            <button type="button" id="requestsViewBtn" class="quick-link-btn" onclick="setDashboardView('requests')">Friend Requests</button>
+            <button type="button" id="messagesViewBtn" class="quick-link-btn" onclick="openMessagesPage()">Friends Messages</button>
+          </div>
+
+          <div id="dashboardLayout" class="dashboard-layout">
+            <aside class="profile-sidebar">
+              <div id="accountDashboardSection" class="profile-card">
+                <img id="profilePhoto" class="avatar" alt="Profile photo">
+                <h2 id="welcomeName" class="welcome"></h2>
+                <p class="muted">Your account dashboard</p>
+                <p id="profileHandle" class="profile-handle"></p>
+
+                <div class="profile-stats">
+                  <div class="info-item"><span class="info-label">Full Name</span><span id="fullName" class="info-value"></span></div>
+                  <div class="info-item"><span class="info-label">Username</span><span id="username" class="info-value"></span></div>
+                  <div class="info-item"><span class="info-label">Email</span><span id="email" class="info-value"></span></div>
+                  <div class="info-item"><span class="info-label">User ID</span><span id="userId" class="info-value"></span></div>
+                  <div class="info-item"><span class="info-label">Created</span><span id="createdAt" class="info-value"></span></div>
+                </div>
+
+                <div class="sidebar-actions">
+                  <button type="button" class="btn btn-secondary" onclick="toggleEditPanel()">Edit Profile</button>
+                  <button type="button" class="btn btn-danger" onclick="logout()">Logout</button>
+                  <button type="button" class="btn btn-ghost" onclick="deleteAccount()">Delete Account</button>
+                </div>
+              </div>
+            </aside>
+
+            <div class="dashboard-main">
+              <div id="editPanel" class="edit-panel profile-card">
+                <h3 class="form-title" style="font-size: 24px; margin-top: 0;">Edit Profile</h3>
+                <div class="form-group">
+                  <label for="edit-name">Full Name</label>
+                  <input id="edit-name" type="text" placeholder="Enter your full name" required>
+                </div>
+                <div class="form-group">
+                  <label for="edit-username">Username</label>
+                  <input id="edit-username" type="text" placeholder="Enter username" minlength="3" maxlength="20" required>
+                </div>
+                <div class="form-group">
+                  <label for="edit-email">Email</label>
+                  <input id="edit-email" type="email" placeholder="Enter email" required>
+                </div>
+                <div class="form-group">
+                  <label for="edit-photo">Profile Photo</label>
+                  <input id="edit-photo" type="file" accept="image/*">
+                  <small>Leave empty to keep the current photo.</small>
+                </div>
+                <div id="editLoading" class="loading"><span class="spinner"></span>Updating profile...</div>
+                <button id="saveProfileBtn" class="btn btn-primary" type="button">Save Profile</button>
+              </div>
+
+              <div id="createPostSection" class="social-block panel-card">
+                <h3 class="social-title">Create Post</h3>
+                <textarea id="postContent" class="post-input" maxlength="500" placeholder="Share something like Facebook..."></textarea>
+                <div class="form-group" style="margin-top: 10px; margin-bottom: 0;">
+                  <label for="postPhoto">Post Photo</label>
+                  <input id="postPhoto" type="file" accept="image/*">
+                  <small>Optional: add a photo to your post.</small>
+                </div>
+                <div id="postLoading" class="loading"><span class="spinner"></span>Posting...</div>
+                <button id="createPostBtn" class="btn btn-primary" type="button" style="margin-top: 10px;">Post</button>
+                <div class="small-note">Only your friends can see your posts.</div>
+              </div>
+
+              <div id="friendRequestsSection" class="social-block panel-card">
+                <h3 class="social-title">Friend Requests</h3>
+                <div id="friendRequests" class="inline-list"></div>
+              </div>
+
+              <div id="friendsListSection" class="social-block panel-card">
+                <h3 class="social-title">Friends List</h3>
+                <div id="friendsOnlyList" class="inline-list"></div>
+              </div>
+
+              <div id="findFriendsSection" class="social-block panel-card">
+                <h3 class="social-title">Find Friends</h3>
+                <input id="userSearch" type="text" placeholder="Search by name, username, or email" style="margin-bottom: 10px;">
+                <div id="usersList" class="inline-list"></div>
+              </div>
+
+              <div id="friendsFeedSection" class="social-block panel-card">
+                <h3 class="social-title">Friends Feed</h3>
+                <div id="feedList" class="inline-list"></div>
+              </div>
+
+              <div id="homeFeedSection" class="social-block panel-card" style="display: none;">
+                <h3 class="social-title">Home Feed (Friends Only)</h3>
+                <div id="homeFeedList" class="inline-list"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <form id="signinForm">
+          <h2 class="form-title">Sign In</h2>
+          <div class="form-group">
+            <label for="signin-email">Email</label>
+            <input id="signin-email" type="email" placeholder="Enter your email" required>
+          </div>
+          <div class="form-group">
+            <label for="signin-password">Password</label>
+            <input id="signin-password" type="password" placeholder="Enter your password" required>
+          </div>
+          <div id="signinLoading" class="loading"><span class="spinner"></span>Signing in...</div>
+          <button class="btn btn-primary" type="submit">Sign In</button>
+          <button class="btn btn-secondary" type="button" onclick="toggleForms()">Don't have account? Sign Up</button>
+        </form>
+
+        <form id="signupForm" class="form-hidden">
+          <h2 class="form-title">Create Account</h2>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="signup-name">Full Name</label>
+              <input id="signup-name" type="text" placeholder="Enter your full name" required>
+            </div>
+            <div class="form-group">
+              <label for="signup-username">Username</label>
+              <input id="signup-username" type="text" placeholder="Choose a username" minlength="3" maxlength="20" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="signup-email">Email</label>
+            <input id="signup-email" type="email" placeholder="Enter your email" required>
+          </div>
+          <div class="form-group">
+            <label for="signup-photo">Profile Photo</label>
+            <input id="signup-photo" type="file" accept="image/*">
+            <small>Optional: upload a photo. If empty, a default avatar is used.</small>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="signup-password">Password</label>
+              <input id="signup-password" type="password" placeholder="Enter password" minlength="6" required>
+            </div>
+            <div class="form-group">
+              <label for="signup-password-confirm">Confirm Password</label>
+              <input id="signup-password-confirm" type="password" placeholder="Confirm password" minlength="6" required>
+            </div>
+          </div>
+          <div id="signupLoading" class="loading"><span class="spinner"></span>Creating account...</div>
+          <button class="btn btn-primary" type="submit">Sign Up</button>
+          <button class="btn btn-secondary" type="button" onclick="toggleForms()">Already have account? Sign In</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const BASE_ORIGIN = window.location.origin && window.location.origin !== 'null'
+      ? window.location.origin
+      : 'http://localhost:5000';
+    const API_URL = `${BASE_ORIGIN}/api/auth`;
+    const SOCIAL_API_URL = `${BASE_ORIGIN}/api/social`;
+    let cachedUsers = [];
+    let currentUserState = null;
+
+    function toggleForms() {
+      document.getElementById('signinForm').classList.toggle('form-hidden');
+      document.getElementById('signupForm').classList.toggle('form-hidden');
+      clearMessages();
+    }
+
+    function clearMessages() {
+      document.getElementById('errorMsg').className = 'notice error';
+      document.getElementById('errorMsg').textContent = '';
+      document.getElementById('successMsg').className = 'notice success';
+      document.getElementById('successMsg').textContent = '';
+    }
+
+    function showError(message) {
+      const box = document.getElementById('errorMsg');
+      box.textContent = message;
+      box.className = 'notice error show';
+    }
+
+    function showSuccess(message) {
+      const box = document.getElementById('successMsg');
+      box.textContent = message;
+      box.className = 'notice success show';
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        if (!file) {
+          resolve(null);
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function defaultAvatar(name) {
+      const initial = (name || '?').trim().charAt(0).toUpperCase();
+      return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+          <rect width="200" height="200" rx="100" fill="#667eea"></rect>
+          <text x="100" y="118" font-size="84" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif">${initial}</text>
+        </svg>
+      `)}`;
+    }
+
+    function avatarSource(photo, name) {
+      return photo || defaultAvatar(name);
+    }
+
+    function setDashboardView(view) {
+      const dashboardLayout = document.getElementById('dashboardLayout');
+      const profileSection = document.querySelector('.profile-sidebar');
+      const dashboardMain = document.querySelector('.dashboard-main');
+      const createPostSection = document.getElementById('createPostSection');
+      const friendsFeedSection = document.getElementById('friendsFeedSection');
+      const homeFeedSection = document.getElementById('homeFeedSection');
+      const friendsListSection = document.getElementById('friendsListSection');
+      const findFriendsSection = document.getElementById('findFriendsSection');
+      const friendRequestsSection = document.getElementById('friendRequestsSection');
+      const editPanel = document.getElementById('editPanel');
+
+      const buttons = {
+        home: document.getElementById('homeViewBtn'),
+        dashboard: document.getElementById('dashboardViewBtn'),
+        friends: document.getElementById('friendsViewBtn'),
+        findFriends: document.getElementById('findFriendsViewBtn'),
+        requests: document.getElementById('requestsViewBtn'),
+        messages: document.getElementById('messagesViewBtn')
+      };
+
+      Object.values(buttons).forEach((btn) => btn && btn.classList.remove('active'));
+
+      if (view === 'home') {
+        profileSection.style.display = 'none';
+        dashboardMain.style.display = 'grid';
+        dashboardLayout.style.gridTemplateColumns = 'minmax(0, 1fr)';
+        createPostSection.style.display = 'block';
+        friendsFeedSection.style.display = 'none';
+        friendsListSection.style.display = 'none';
+        findFriendsSection.style.display = 'none';
+        friendRequestsSection.style.display = 'none';
+        homeFeedSection.style.display = 'block';
+        editPanel.classList.remove('active');
+        buttons.home.classList.add('active');
+        return;
+      }
+
+      if (view === 'friends') {
+        profileSection.style.display = 'none';
+        dashboardMain.style.display = 'grid';
+        dashboardLayout.style.gridTemplateColumns = 'minmax(0, 1fr)';
+        createPostSection.style.display = 'none';
+        friendsFeedSection.style.display = 'none';
+        homeFeedSection.style.display = 'none';
+        friendRequestsSection.style.display = 'none';
+        findFriendsSection.style.display = 'none';
+        friendsListSection.style.display = 'block';
+        editPanel.classList.remove('active');
+        buttons.friends.classList.add('active');
+        return;
+      }
+
+      if (view === 'findFriends') {
+        profileSection.style.display = 'none';
+        dashboardMain.style.display = 'grid';
+        dashboardLayout.style.gridTemplateColumns = 'minmax(0, 1fr)';
+        createPostSection.style.display = 'none';
+        friendsFeedSection.style.display = 'none';
+        homeFeedSection.style.display = 'none';
+        friendsListSection.style.display = 'none';
+        friendRequestsSection.style.display = 'none';
+        findFriendsSection.style.display = 'block';
+        editPanel.classList.remove('active');
+        buttons.findFriends.classList.add('active');
+        return;
+      }
+
+      if (view === 'requests') {
+        profileSection.style.display = 'none';
+        dashboardMain.style.display = 'grid';
+        dashboardLayout.style.gridTemplateColumns = 'minmax(0, 1fr)';
+        createPostSection.style.display = 'none';
+        friendsFeedSection.style.display = 'none';
+        homeFeedSection.style.display = 'none';
+        friendsListSection.style.display = 'none';
+        findFriendsSection.style.display = 'none';
+        friendRequestsSection.style.display = 'block';
+        editPanel.classList.remove('active');
+        buttons.requests.classList.add('active');
+        return;
+      }
+
+      profileSection.style.display = 'grid';
+      dashboardMain.style.display = 'none';
+      dashboardLayout.style.gridTemplateColumns = 'minmax(0, 1fr)';
+      createPostSection.style.display = 'none';
+      friendsFeedSection.style.display = 'none';
+      homeFeedSection.style.display = 'none';
+      friendsListSection.style.display = 'none';
+      findFriendsSection.style.display = 'none';
+      friendRequestsSection.style.display = 'none';
+      editPanel.classList.remove('active');
+      buttons.dashboard.classList.add('active');
+    }
+
+    function renderDashboard(user, token) {
+      document.getElementById('dashboard').classList.add('active');
+      document.getElementById('signinForm').classList.add('form-hidden');
+      document.getElementById('signupForm').classList.add('form-hidden');
+      document.getElementById('editPanel').classList.remove('active');
+
+      document.getElementById('welcomeName').textContent = `Welcome, ${user.name}!`;
+      document.getElementById('profileHandle').textContent = `@${user.username || 'user'}`;
+      document.getElementById('userId').textContent = user.id || '';
+      document.getElementById('username').textContent = user.username || '';
+      document.getElementById('fullName').textContent = user.name || '';
+      document.getElementById('email').textContent = user.email || '';
+      document.getElementById('createdAt').textContent = user.createdAt ? new Date(user.createdAt).toLocaleString() : '';
+      document.getElementById('profilePhoto').src = avatarSource(user.photo, user.name);
+
+      document.getElementById('edit-name').value = user.name || '';
+      document.getElementById('edit-username').value = user.username || '';
+      document.getElementById('edit-email').value = user.email || '';
+      document.getElementById('edit-photo').value = '';
+
+      currentUserState = user;
+      try {
+        localStorage.removeItem('user');
+        localStorage.setItem('token', token);
+      } catch (storageError) {
+        console.warn('Storage warning:', storageError);
+      }
+
+      loadSocialData(token);
+      setDashboardView('home');
+    }
+
+    function openMessagesPage() {
+      window.location.href = `${BASE_ORIGIN}/messages.html`;
+    }
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function renderUserAvatar(photo, name, className, altText) {
+      return `<img class="${className}" src="${escapeHtml(avatarSource(photo, name))}" alt="${escapeHtml(altText || name || 'Profile photo')}">`;
+    }
+
+    async function loadSocialData(token) {
+      const loadSection = async (url, fallback) => {
+        try {
+          const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+          if (response.status === 401 || response.status === 404) {
+            logout(false);
+            showError('Session expired. Please sign in again.');
+            return fallback;
+          }
+
+          if (!response.ok) {
+            return fallback;
+          }
+
+          return await response.json();
+        } catch (error) {
+          return fallback;
+        }
+      };
+
+      const usersData = await loadSection(`${SOCIAL_API_URL}/users`, { users: [] });
+      cachedUsers = usersData.users || [];
+      renderUsers(cachedUsers);
+      renderFriendsList(cachedUsers);
+
+      const requestsData = await loadSection(`${SOCIAL_API_URL}/friend-requests`, { requests: [] });
+      renderFriendRequests(requestsData.requests || []);
+
+      const feedData = await loadSection(`${SOCIAL_API_URL}/feed`, { feed: [] });
+      renderFeed(feedData.feed || []);
+
+      const allFeedData = await loadSection(`${SOCIAL_API_URL}/feed/all`, { feed: [] });
+      renderHomeFeed(allFeedData.feed || []);
+    }
+
+    function renderUsers(users) {
+      const container = document.getElementById('usersList');
+      const discoverableUsers = users.filter((user) => user.relationship !== 'friend');
+
+      if (!discoverableUsers.length) {
+        container.innerHTML = '<div class="small-note">No new users to add right now.</div>';
+        return;
+      }
+
+      container.innerHTML = discoverableUsers.map((user) => {
+        const relationText = user.relationship === 'friend'
+          ? 'Friends'
+          : user.relationship === 'request_sent'
+            ? 'Request Sent'
+            : user.relationship === 'requested_you'
+              ? 'Requested You'
+              : 'Not Connected';
+
+        const disableSend = user.relationship !== 'none';
+
+        return `
+          <div class="list-item compact">
+            <div class="list-row">
+              <div class="list-person">
+                ${renderUserAvatar(user.photo, user.name, 'mini-avatar', user.name)}
+                <div class="person-copy">
+                  <strong>${escapeHtml(user.name)}</strong> (@${escapeHtml(user.username)})
+                  <div class="small-note">${escapeHtml(user.email)} - ${relationText}</div>
+                </div>
+              </div>
+              <button class="mini-btn" onclick="sendFriendRequest('${user.id}')" ${disableSend ? 'disabled' : ''}>Send Request</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderFriendsList(users) {
+      const container = document.getElementById('friendsOnlyList');
+      const friends = users.filter((user) => user.relationship === 'friend');
+
+      if (!friends.length) {
+        container.innerHTML = '<div class="small-note">No friends added yet.</div>';
+        return;
+      }
+
+      container.innerHTML = friends.map((user) => `
+        <div class="list-item compact">
+          <div class="list-row">
+            <div class="list-person">
+              ${renderUserAvatar(user.photo, user.name, 'mini-avatar', user.name)}
+              <div class="person-copy">
+                <strong>${escapeHtml(user.name)}</strong> (@${escapeHtml(user.username)})
+                <div class="small-note">${escapeHtml(user.email)} - Friends</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderFriendRequests(requests) {
+      const container = document.getElementById('friendRequests');
+      if (!requests.length) {
+        container.innerHTML = '<div class="small-note">No pending friend requests.</div>';
+        return;
+      }
+
+      container.innerHTML = requests.map((user) => `
+        <div class="list-item compact">
+          <div class="list-row">
+            <div class="list-person">
+              ${renderUserAvatar(user.photo, user.name, 'mini-avatar', user.name)}
+              <div class="person-copy">
+                <strong>${escapeHtml(user.name)}</strong> (@${escapeHtml(user.username)})
+                <div class="small-note">${escapeHtml(user.email)}</div>
+              </div>
+            </div>
+            <button class="mini-btn" onclick="acceptFriendRequest('${user.id}')">Accept</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderFeed(feed) {
+      const container = document.getElementById('feedList');
+      if (!feed.length) {
+        container.innerHTML = '<div class="small-note">No posts yet. Add friends and create posts.</div>';
+        return;
+      }
+
+      container.innerHTML = feed.map((post) => {
+        const author = post.author || {};
+        const authorName = author.name || 'Unknown';
+        const authorUsername = author.username || 'unknown';
+        const likesCount = Number.isFinite(post.likesCount)
+          ? post.likesCount
+          : (Array.isArray(post.likes) ? post.likes.length : 0);
+        const likedByMe = Boolean(post.likedByCurrentUser);
+        const comments = Array.isArray(post.comments) ? post.comments : [];
+        const canDelete = Boolean(post.canDelete || (currentUserState && post.authorId === currentUserState.id));
+        const commentInputId = `comment-input-${post.id}`;
+        const commentsWrapId = `comments-wrap-${post.id}`;
+        const editFormId = `post-edit-form-${post.id}`;
+        const editContentId = `post-edit-content-${post.id}`;
+        const editPhotoId = `post-edit-photo-${post.id}`;
+        const editRemovePhotoId = `post-edit-remove-photo-${post.id}`;
+        const commentsHtml = comments.length
+          ? comments.map((comment) => {
+            const commenter = comment.user || {};
+            const commenterName = commenter.name || 'Unknown';
+            const commenterUsername = commenter.username || 'unknown';
+            return `
+              <div class="comment-item">
+                <div class="small-note" style="margin-top: 0;"><strong>${escapeHtml(commenterName)}</strong> (@${escapeHtml(commenterUsername)}) - ${new Date(comment.createdAt).toLocaleString()}</div>
+                <div>${escapeHtml(comment.text)}</div>
+              </div>
+            `;
+          }).join('')
+          : '<div class="small-note">No comments yet.</div>';
+
+        return `
+          <div class="post-card">
+            <div class="list-row" style="align-items: flex-start; margin-bottom: 10px;">
+              <div class="list-person">
+                ${renderUserAvatar(author.photo, authorName, 'feed-avatar', authorName)}
+                <div class="person-copy">
+                  <div class="post-meta" style="margin-bottom: 2px;"><strong>${escapeHtml(authorName)}</strong> (@${escapeHtml(authorUsername)})</div>
+                  <div class="small-note">${new Date(post.createdAt).toLocaleString()}</div>
+                </div>
+              </div>
+            </div>
+            ${post.content ? `<div>${escapeHtml(post.content)}</div>` : ''}
+            ${post.photo ? `<img class="post-image" src="${escapeHtml(post.photo)}" alt="Post photo">` : ''}
+            <div class="post-actions">
+              <button class="action-btn" onclick="toggleLikePost('${post.id}')">${likedByMe ? 'Unlike' : 'Like'} (${likesCount})</button>
+              <button class="action-btn" onclick="toggleComments('${commentsWrapId}')">Comments (${comments.length})</button>
+              ${canDelete ? `<button class="action-btn" onclick="togglePostEditForm('${editFormId}')">Edit</button>` : ''}
+              ${canDelete ? `<button class="action-btn action-btn-danger" onclick="deletePost('${post.id}')">Delete</button>` : ''}
+            </div>
+            ${canDelete ? `
+              <div id="${editFormId}" class="post-edit-form" style="display: none;">
+                <textarea id="${editContentId}" class="post-edit-text" maxlength="500" placeholder="Edit your post text...">${escapeHtml(post.content || '')}</textarea>
+                <input id="${editPhotoId}" type="file" accept="image/*">
+                <label class="small-note" style="margin-top: 0;"><input id="${editRemovePhotoId}" type="checkbox"> Remove current photo</label>
+                <div class="post-edit-actions">
+                  <button class="mini-btn" onclick="saveEditedPost('${post.id}', '${editContentId}', '${editPhotoId}', '${editRemovePhotoId}', '${editFormId}')">Save Edit</button>
+                  <button class="action-btn" onclick="togglePostEditForm('${editFormId}')">Cancel</button>
+                </div>
+              </div>
+            ` : ''}
+            <div id="${commentsWrapId}" class="comments-wrap" style="display: none;">
+              ${commentsHtml}
+              <div class="comment-form">
+                <input id="${commentInputId}" class="comment-input" type="text" maxlength="300" placeholder="Write a comment...">
+                <button class="mini-btn" onclick="addCommentToPost('${post.id}', '${commentInputId}')">Comment</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderHomeFeed(feed) {
+      const container = document.getElementById('homeFeedList');
+      if (!feed.length) {
+        container.innerHTML = '<div class="small-note">No posts yet. You and your friends can post here.</div>';
+        return;
+      }
+
+      container.innerHTML = feed.map((post) => {
+        const author = post.author || {};
+        const authorName = author.name || 'Unknown';
+        const authorUsername = author.username || 'unknown';
+        const likesCount = Number.isFinite(post.likesCount)
+          ? post.likesCount
+          : (Array.isArray(post.likes) ? post.likes.length : 0);
+        const likedByMe = Boolean(post.likedByCurrentUser);
+        const comments = Array.isArray(post.comments) ? post.comments : [];
+        const canDelete = Boolean(post.canDelete || (currentUserState && post.authorId === currentUserState.id));
+        const commentInputId = `home-comment-input-${post.id}`;
+        const commentsWrapId = `home-comments-wrap-${post.id}`;
+        const editFormId = `home-post-edit-form-${post.id}`;
+        const editContentId = `home-post-edit-content-${post.id}`;
+        const editPhotoId = `home-post-edit-photo-${post.id}`;
+        const editRemovePhotoId = `home-post-edit-remove-photo-${post.id}`;
+        const commentsHtml = comments.length
+          ? comments.map((comment) => {
+            const commenter = comment.user || {};
+            const commenterName = commenter.name || 'Unknown';
+            const commenterUsername = commenter.username || 'unknown';
+            return `
+              <div class="comment-item">
+                <div class="small-note" style="margin-top: 0;"><strong>${escapeHtml(commenterName)}</strong> (@${escapeHtml(commenterUsername)}) - ${new Date(comment.createdAt).toLocaleString()}</div>
+                <div>${escapeHtml(comment.text)}</div>
+              </div>
+            `;
+          }).join('')
+          : '<div class="small-note">No comments yet.</div>';
+
+        return `
+          <div class="post-card">
+            <div class="list-row" style="align-items: flex-start; margin-bottom: 10px;">
+              <div class="list-person">
+                ${renderUserAvatar(author.photo, authorName, 'feed-avatar', authorName)}
+                <div class="person-copy">
+                  <div class="post-meta" style="margin-bottom: 2px;"><strong>${escapeHtml(authorName)}</strong> (@${escapeHtml(authorUsername)})</div>
+                  <div class="small-note">${new Date(post.createdAt).toLocaleString()}</div>
+                </div>
+              </div>
+            </div>
+            ${post.content ? `<div>${escapeHtml(post.content)}</div>` : ''}
+            ${post.photo ? `<img class="post-image" src="${escapeHtml(post.photo)}" alt="Post photo">` : ''}
+            <div class="post-actions">
+              <button class="action-btn" onclick="toggleLikePost('${post.id}')">${likedByMe ? 'Unlike' : 'Like'} (${likesCount})</button>
+              <button class="action-btn" onclick="toggleComments('${commentsWrapId}')">Comments (${comments.length})</button>
+              ${canDelete ? `<button class="action-btn" onclick="togglePostEditForm('${editFormId}')">Edit</button>` : ''}
+              ${canDelete ? `<button class="action-btn action-btn-danger" onclick="deletePost('${post.id}')">Delete</button>` : ''}
+            </div>
+            ${canDelete ? `
+              <div id="${editFormId}" class="post-edit-form" style="display: none;">
+                <textarea id="${editContentId}" class="post-edit-text" maxlength="500" placeholder="Edit your post text...">${escapeHtml(post.content || '')}</textarea>
+                <input id="${editPhotoId}" type="file" accept="image/*">
+                <label class="small-note" style="margin-top: 0;"><input id="${editRemovePhotoId}" type="checkbox"> Remove current photo</label>
+                <div class="post-edit-actions">
+                  <button class="mini-btn" onclick="saveEditedPost('${post.id}', '${editContentId}', '${editPhotoId}', '${editRemovePhotoId}', '${editFormId}')">Save Edit</button>
+                  <button class="action-btn" onclick="togglePostEditForm('${editFormId}')">Cancel</button>
+                </div>
+              </div>
+            ` : ''}
+            <div id="${commentsWrapId}" class="comments-wrap" style="display: none;">
+              ${commentsHtml}
+              <div class="comment-form">
+                <input id="${commentInputId}" class="comment-input" type="text" maxlength="300" placeholder="Write a comment...">
+                <button class="mini-btn" onclick="addCommentToPost('${post.id}', '${commentInputId}')">Comment</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleComments(commentsWrapId) {
+      const commentsWrap = document.getElementById(commentsWrapId);
+      if (!commentsWrap) {
+        return;
+      }
+
+      commentsWrap.style.display = commentsWrap.style.display === 'none' ? 'grid' : 'none';
+    }
+
+    function togglePostEditForm(formId) {
+      const form = document.getElementById(formId);
+      if (!form) {
+        return;
+      }
+
+      form.style.display = form.style.display === 'none' ? 'grid' : 'none';
+    }
+
+    async function saveEditedPost(postId, contentInputId, photoInputId, removePhotoInputId, formId) {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showError('Please sign in again.');
+        return;
+      }
+
+      const contentInput = document.getElementById(contentInputId);
+      const photoInput = document.getElementById(photoInputId);
+      const removePhotoInput = document.getElementById(removePhotoInputId);
+
+      if (!contentInput || !photoInput || !removePhotoInput) {
+        return;
+      }
+
+      clearMessages();
+
+      try {
+        const photo = photoInput.files[0] ? await fileToBase64(photoInput.files[0]) : null;
+        const response = await fetch(`${SOCIAL_API_URL}/posts/${encodeURIComponent(postId)}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            content: contentInput.value.trim(),
+            photo,
+            removePhoto: removePhotoInput.checked
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Could not edit post');
+        }
+
+        showSuccess('Post updated successfully.');
+        if (formId) {
+          const form = document.getElementById(formId);
+          if (form) {
+            form.style.display = 'none';
+          }
+        }
+        loadSocialData(token);
+      } catch (error) {
+        showError(error.message || 'Could not edit post.');
+      }
+    }
+
+    async function deletePost(postId) {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showError('Please sign in again.');
+        return;
+      }
+
+      const confirmed = window.confirm('Delete this post permanently?');
+      if (!confirmed) {
+        return;
+      }
+
+      clearMessages();
+
+      try {
+        const response = await fetch(`${SOCIAL_API_URL}/posts/${encodeURIComponent(postId)}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Could not delete post');
+        }
+
+        showSuccess('Post deleted successfully.');
+        loadSocialData(token);
+      } catch (error) {
+        showError(error.message || 'Could not delete post.');
+      }
+    }
+
+    async function toggleLikePost(postId) {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showError('Please sign in again.');
+        return;
+      }
+
+      clearMessages();
+
+      try {
+        const response = await fetch(`${SOCIAL_API_URL}/posts/${encodeURIComponent(postId)}/like`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Could not update like');
+        }
+
+        loadSocialData(token);
+      } catch (error) {
+        showError(error.message || 'Could not update like.');
+      }
+    }
+
+    async function addCommentToPost(postId, inputId) {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showError('Please sign in again.');
+        return;
+      }
+
+      const input = document.getElementById(inputId);
+      if (!input) {
+        return;
+      }
+
+      const text = input.value.trim();
+      if (!text) {
+        showError('Write a comment before posting.');
+        return;
+      }
+
+      clearMessages();
+
+      try {
+        const response = await fetch(`${SOCIAL_API_URL}/posts/${encodeURIComponent(postId)}/comments`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ text })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Could not add comment');
+        }
+
+        input.value = '';
+        loadSocialData(token);
+      } catch (error) {
+        showError(error.message || 'Could not add comment.');
+      }
+    }
+
+    async function sendFriendRequest(toUserId) {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showError('Please sign in again.');
+        return;
+      }
+
+      clearMessages();
+
+      try {
+        const response = await fetch(`${SOCIAL_API_URL}/friend-request`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ toUserId })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Could not send friend request');
+        }
+
+        showSuccess('Friend request sent.');
+        loadSocialData(token);
+      } catch (error) {
+        showError(error.message || 'Could not send friend request.');
+      }
+    }
+
+    async function acceptFriendRequest(fromUserId) {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showError('Please sign in again.');
+        return;
+      }
+
+      clearMessages();
+
+      try {
+        const response = await fetch(`${SOCIAL_API_URL}/friend-request/accept`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ fromUserId })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Could not accept friend request');
+        }
+
+        showSuccess('Friend request accepted.');
+        loadSocialData(token);
+      } catch (error) {
+        showError(error.message || 'Could not accept friend request.');
+      }
+    }
+
+    function toggleEditPanel() {
+      const panel = document.getElementById('editPanel');
+      panel.classList.toggle('active');
+      clearMessages();
+    }
+
+    function logout(showMessage = true) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      currentUserState = null;
+      cachedUsers = [];
+      document.getElementById('dashboard').classList.remove('active');
+      document.getElementById('signinForm').classList.remove('form-hidden');
+      document.getElementById('signupForm').classList.add('form-hidden');
+      document.getElementById('signinForm').reset();
+      clearMessages();
+      if (showMessage) {
+        showSuccess('Logged out successfully.');
+      }
+    }
+
+    async function restoreSessionIfValid() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/me`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.success || !data.user) {
+          logout(false);
+          return;
+        }
+
+        renderDashboard(data.user, token);
+      } catch (error) {
+        logout(false);
+      }
+    }
+
+    async function deleteAccount() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showError('Please sign in again.');
+        return;
+      }
+
+      const confirmed = window.confirm('Delete this account permanently? This will remove your profile, requests, and friendships.');
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/me`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Account delete failed');
+        }
+
+        logout(false);
+        showSuccess('Account deleted successfully.');
+      } catch (error) {
+        showError(error.message || 'Account delete failed.');
+      }
+    }
+
+    document.getElementById('saveProfileBtn').addEventListener('click', async () => {
+      clearMessages();
+
+      const token = localStorage.getItem('token');
+
+      if (!token || !currentUserState) {
+        showError('Please sign in again.');
+        return;
+      }
+
+      const name = document.getElementById('edit-name').value.trim();
+      const username = document.getElementById('edit-username').value.trim();
+      const email = document.getElementById('edit-email').value.trim();
+      const photoFile = document.getElementById('edit-photo').files[0];
+      const loading = document.getElementById('editLoading');
+
+      loading.style.display = 'block';
+
+      try {
+        const photo = photoFile ? await fileToBase64(photoFile) : currentUserState.photo;
+
+        const response = await fetch(`${API_URL}/profile`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ name, username, email, photo })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Profile update failed');
+        }
+
+        showSuccess('Profile updated successfully.');
+        renderDashboard(data.user, token);
+        document.getElementById('editPanel').classList.remove('active');
+      } catch (error) {
+        showError(error.message || 'Profile update failed.');
+      } finally {
+        loading.style.display = 'none';
+      }
+    });
+
+    document.getElementById('signupForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      clearMessages();
+
+      const name = document.getElementById('signup-name').value.trim();
+      const username = document.getElementById('signup-username').value.trim();
+      const email = document.getElementById('signup-email').value.trim();
+      const password = document.getElementById('signup-password').value;
+      const passwordConfirm = document.getElementById('signup-password-confirm').value;
+      const photoFile = document.getElementById('signup-photo').files[0];
+
+      if (password !== passwordConfirm) {
+        showError('Passwords do not match.');
+        return;
+      }
+
+      const loading = document.getElementById('signupLoading');
+      loading.style.display = 'block';
+
+      try {
+        const photo = await fileToBase64(photoFile);
+
+        const response = await fetch(`${API_URL}/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, username, email, password, passwordConfirm, photo })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Sign up failed');
+        }
+
+        showSuccess('Account created successfully.');
+        renderDashboard(data.user, data.token);
+      } catch (error) {
+        showError(error.message || 'Sign up failed.');
+      } finally {
+        loading.style.display = 'none';
+      }
+    });
+
+    document.getElementById('signinForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      clearMessages();
+
+      const email = document.getElementById('signin-email').value.trim();
+      const password = document.getElementById('signin-password').value;
+
+      const loading = document.getElementById('signinLoading');
+      loading.style.display = 'block';
+
+      try {
+        const response = await fetch(`${API_URL}/signin`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Sign in failed');
+        }
+
+        showSuccess('Signed in successfully.');
+        renderDashboard(data.user, data.token);
+      } catch (error) {
+        showError(error.message || 'Sign in failed.');
+      } finally {
+        loading.style.display = 'none';
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        localStorage.removeItem('user');
+      } catch (storageError) {
+        console.warn('Storage warning:', storageError);
+      }
+
+      restoreSessionIfValid();
+    });
+
+    document.getElementById('userSearch').addEventListener('input', (event) => {
+      const query = event.target.value.trim().toLowerCase();
+      if (!query) {
+        renderUsers(cachedUsers);
+        return;
+      }
+
+      const filtered = cachedUsers.filter((user) => {
+        return (
+          (user.name || '').toLowerCase().includes(query) ||
+          (user.username || '').toLowerCase().includes(query) ||
+          (user.email || '').toLowerCase().includes(query)
+        );
+      });
+
+      renderUsers(filtered);
+    });
+
+    document.getElementById('createPostBtn').addEventListener('click', async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showError('Please sign in again.');
+        return;
+      }
+
+      const content = document.getElementById('postContent').value.trim();
+      const photoFile = document.getElementById('postPhoto').files[0];
+
+      if (!content && !photoFile) {
+        showError('Write something or add a photo before posting.');
+        return;
+      }
+
+      const loading = document.getElementById('postLoading');
+      loading.style.display = 'block';
+      clearMessages();
+
+      try {
+        const photo = photoFile ? await fileToBase64(photoFile) : null;
+
+        const response = await fetch(`${SOCIAL_API_URL}/posts`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ content, photo })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Could not create post');
+        }
+
+        document.getElementById('postContent').value = '';
+        document.getElementById('postPhoto').value = '';
+        showSuccess('Post created successfully.');
+        loadSocialData(token);
+      } catch (error) {
+        showError(error.message || 'Could not create post.');
+      } finally {
+        loading.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

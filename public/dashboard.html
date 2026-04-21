@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Dashboard - Auth System</title>
+	<style>
+		* { box-sizing: border-box; }
+		body {
+			margin: 0;
+			min-height: 100vh;
+			font-family: Arial, Helvetica, sans-serif;
+			color: #1f2937;
+			background:
+				radial-gradient(circle at top left, rgba(255,255,255,0.2), transparent 28%),
+				radial-gradient(circle at bottom right, rgba(255,255,255,0.16), transparent 24%),
+				linear-gradient(135deg, #6174ff, #8a56c6);
+			display: grid;
+			place-items: center;
+			padding: 18px;
+		}
+		.top-nav {
+			position: fixed;
+			top: 18px;
+			left: 18px;
+			right: 18px;
+			display: flex;
+			justify-content: space-between;
+			gap: 12px;
+			z-index: 5;
+		}
+		.nav-btn {
+			border: 0;
+			border-radius: 999px;
+			padding: 12px 16px;
+			font-weight: 700;
+			cursor: pointer;
+			color: #fff;
+			background: rgba(255,255,255,0.16);
+			backdrop-filter: blur(10px);
+			box-shadow: 0 12px 24px rgba(0,0,0,0.16);
+		}
+		.shell {
+			width: 100%;
+			max-width: 1120px;
+			margin-top: 64px;
+		}
+		.panel {
+			background: rgba(255,255,255,0.98);
+			border-radius: 24px;
+			box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+			overflow: hidden;
+		}
+		.header {
+			padding: 26px 24px;
+			text-align: center;
+			color: #fff;
+			background: linear-gradient(135deg, #667eea, #7a52b5);
+		}
+		.header h1 {
+			margin: 0;
+			font-size: 30px;
+		}
+		.header p {
+			margin: 8px 0 0;
+			opacity: 0.9;
+		}
+		.content {
+			padding: 22px;
+		}
+		.dashboard-layout {
+			display: grid;
+			grid-template-columns: 360px minmax(0, 1fr);
+			gap: 18px;
+			align-items: start;
+		}
+		.dashboard-main {
+			display: grid;
+			gap: 18px;
+		}
+		.profile-card,
+		.panel-card {
+			background: #f8fafc;
+			border: 1px solid #e5e7eb;
+			border-radius: 20px;
+			padding: 22px;
+		}
+		.avatar {
+			width: 138px;
+			height: 138px;
+			display: block;
+			margin: 0 auto 18px;
+			border-radius: 50%;
+			object-fit: cover;
+			border: 5px solid #667eea;
+			box-shadow: 0 14px 30px rgba(102, 126, 234, 0.22);
+			background: #e5e7eb;
+		}
+		.welcome {
+			margin: 0;
+			text-align: center;
+			font-size: 34px;
+			line-height: 1.1;
+			color: #111827;
+		}
+		.muted {
+			margin: 8px 0 0;
+			text-align: center;
+			color: #6b7280;
+			font-size: 18px;
+		}
+		.handle {
+			margin: 12px 0 0;
+			text-align: center;
+			color: #667eea;
+			font-size: 22px;
+			font-weight: 700;
+		}
+		.stats {
+			display: grid;
+			gap: 10px;
+			margin-top: 18px;
+		}
+		.info-item {
+			background: #fff;
+			border: 1px solid #e5e7eb;
+			border-radius: 16px;
+			padding: 12px 14px;
+		}
+		.info-label {
+			display: block;
+			font-size: 12px;
+			color: #6b7280;
+			margin-bottom: 4px;
+		}
+		.info-value {
+			font-weight: 700;
+			word-break: break-word;
+			font-size: 16px;
+			color: #111827;
+		}
+		.actions {
+			display: grid;
+			grid-template-columns: 1fr;
+			gap: 12px;
+			margin-top: 18px;
+		}
+		.btn {
+			width: 100%;
+			border: 0;
+			border-radius: 14px;
+			padding: 14px 16px;
+			font-size: 15px;
+			font-weight: 700;
+			cursor: pointer;
+		}
+		.btn-primary { color: #fff; background: linear-gradient(135deg, #667eea, #7a52b5); }
+		.btn-secondary { color: #667eea; background: #eef2ff; }
+		.notice {
+			display: none;
+			padding: 12px 14px;
+			border-radius: 12px;
+			margin-bottom: 16px;
+			font-size: 14px;
+		}
+		.notice.show { display: block; }
+		.error { background: #fee2e2; color: #b91c1c; }
+		.success { background: #dcfce7; color: #166534; }
+		.empty-state {
+			display: none;
+			text-align: center;
+			padding: 18px 12px 0;
+			color: #475569;
+		}
+		.empty-state.active { display: block; }
+		.empty-state h2 {
+			margin: 0 0 10px;
+			font-size: 28px;
+			color: #111827;
+		}
+		.empty-state p {
+			margin: 0 0 16px;
+			line-height: 1.5;
+		}
+		.section-title {
+			margin: 0 0 12px;
+			font-size: 24px;
+			color: #111827;
+		}
+		.inline-list {
+			display: grid;
+			gap: 12px;
+		}
+		.list-item {
+			border: 1px solid #e5e7eb;
+			border-radius: 16px;
+			padding: 12px 14px;
+			background: #fff;
+		}
+		.list-row {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+		}
+		.list-person {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			min-width: 0;
+		}
+		.feed-avatar {
+			width: 48px;
+			height: 48px;
+			border-radius: 50%;
+			object-fit: cover;
+			flex: 0 0 auto;
+			background: #e5e7eb;
+		}
+		.person-copy { min-width: 0; }
+		.small-note {
+			font-size: 12px;
+			color: #6b7280;
+			margin-top: 4px;
+		}
+		.spinner {
+			display: inline-block;
+			width: 18px;
+			height: 18px;
+			margin-right: 8px;
+			border: 2px solid #e5e7eb;
+			border-top-color: #667eea;
+			border-radius: 50%;
+			animation: spin 0.8s linear infinite;
+			vertical-align: -4px;
+		}
+		@keyframes spin { to { transform: rotate(360deg); } }
+		@media (max-width: 700px) {
+			body { padding: 12px; }
+			.top-nav { top: 12px; left: 12px; right: 12px; }
+			.shell { margin-top: 72px; }
+			.dashboard-layout { grid-template-columns: 1fr; }
+			.welcome { font-size: 28px; }
+			.muted { font-size: 16px; }
+			.handle { font-size: 18px; }
+			.actions { grid-template-columns: 1fr; }
+		}
+	</style>
+</head>
+<body>
+	<div class="top-nav">
+		<button class="nav-btn" type="button" onclick="goHome()">Home</button>
+		<button class="nav-btn" type="button" onclick="logout()">Logout</button>
+	</div>
+
+	<div class="shell">
+		<div class="panel">
+			<div class="header">
+				<h1>Account Dashboard</h1>
+				<p>Tap in to view your profile</p>
+			</div>
+			<div class="content">
+				<div id="notice" class="notice"></div>
+
+				<div id="emptyState" class="empty-state">
+					<h2>Sign in first</h2>
+					<p>You need an active session to view your account dashboard.</p>
+					<button class="btn btn-primary" type="button" onclick="goHome()">Go to Login</button>
+				</div>
+
+				<div id="dashboardContent" class="dashboard-layout">
+					<aside class="profile-card">
+						<img id="profilePhoto" class="avatar" alt="Profile photo">
+						<h2 id="welcomeName" class="welcome"></h2>
+						<p class="muted">Your account dashboard</p>
+						<p id="profileHandle" class="handle"></p>
+
+						<div class="stats">
+							<div class="info-item"><span class="info-label">Full Name</span><span id="fullName" class="info-value"></span></div>
+							<div class="info-item"><span class="info-label">Username</span><span id="username" class="info-value"></span></div>
+							<div class="info-item"><span class="info-label">Email</span><span id="email" class="info-value"></span></div>
+							<div class="info-item"><span class="info-label">User ID</span><span id="userId" class="info-value"></span></div>
+							<div class="info-item"><span class="info-label">Created</span><span id="createdAt" class="info-value"></span></div>
+						</div>
+
+						<div class="actions">
+							<button class="btn btn-primary" type="button" onclick="openMessagesPage()">Friends Messages</button>
+							<button class="btn btn-secondary" type="button" onclick="goHome()">Back</button>
+							<button class="btn btn-primary" type="button" onclick="refreshProfile()">Refresh</button>
+						</div>
+					</aside>
+
+					<div class="dashboard-main">
+						<section class="panel-card">
+							<h3 class="section-title">Friends Feed</h3>
+							<div id="feedList" class="inline-list"></div>
+						</section>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		const BASE_ORIGIN = window.location.origin && window.location.origin !== 'null'
+			? window.location.origin
+			: 'http://localhost:5000';
+		const API_URL = `${BASE_ORIGIN}/api/auth`;
+		const SOCIAL_API_URL = `${BASE_ORIGIN}/api/social`;
+
+		function goHome() {
+			window.location.href = `${BASE_ORIGIN}/`;
+		}
+
+		function openMessagesPage() {
+			window.location.href = `${BASE_ORIGIN}/messages.html`;
+		}
+
+		function showNotice(message, type = 'success') {
+			const notice = document.getElementById('notice');
+			notice.textContent = message;
+			notice.className = `notice ${type} show`;
+		}
+
+		function hideNotice() {
+			const notice = document.getElementById('notice');
+			notice.className = 'notice';
+			notice.textContent = '';
+		}
+
+		function defaultAvatar(name) {
+			const initial = (name || '?').trim().charAt(0).toUpperCase();
+			return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+					<rect width="200" height="200" rx="100" fill="#667eea"></rect>
+					<text x="100" y="118" font-size="84" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif">${initial}</text>
+				</svg>
+			`)}`;
+		}
+
+		function escapeHtml(value) {
+			return String(value || '')
+				.replaceAll('&', '&amp;')
+				.replaceAll('<', '&lt;')
+				.replaceAll('>', '&gt;')
+				.replaceAll('"', '&quot;')
+				.replaceAll("'", '&#039;');
+		}
+
+		function avatarSource(photo, name) {
+			return photo || defaultAvatar(name);
+		}
+
+		function setProfile(user) {
+			document.getElementById('emptyState').classList.remove('active');
+			document.getElementById('dashboardContent').style.display = 'grid';
+			document.getElementById('profilePhoto').src = avatarSource(user.photo, user.name);
+			document.getElementById('welcomeName').textContent = `Welcome, ${user.name}!`;
+			document.getElementById('profileHandle').textContent = `@${user.username || 'user'}`;
+			document.getElementById('fullName').textContent = user.name || '';
+			document.getElementById('username').textContent = user.username || '';
+			document.getElementById('email').textContent = user.email || '';
+			document.getElementById('userId').textContent = user.id || '';
+			document.getElementById('createdAt').textContent = user.createdAt ? new Date(user.createdAt).toLocaleString() : '';
+		}
+
+		function renderFeed(feed) {
+			const container = document.getElementById('feedList');
+
+			if (!feed.length) {
+				container.innerHTML = '<div class="small-note">No posts yet. Add friends and create posts.</div>';
+				return;
+			}
+
+			container.innerHTML = feed.map((post) => {
+				const author = post.author || {};
+				const authorName = author.name || 'Unknown';
+				const authorUsername = author.username || 'unknown';
+
+				return `
+					<div class="list-item">
+						<div class="list-row" style="align-items: flex-start; margin-bottom: 10px;">
+							<div class="list-person">
+								<img class="feed-avatar" src="${escapeHtml(avatarSource(author.photo, authorName))}" alt="${escapeHtml(authorName)}">
+								<div class="person-copy">
+									<div class="post-meta" style="margin-bottom: 2px;"><strong>${escapeHtml(authorName)}</strong> (@${escapeHtml(authorUsername)})</div>
+									<div class="small-note">${new Date(post.createdAt).toLocaleString()}</div>
+								</div>
+							</div>
+						</div>
+						<div>${escapeHtml(post.content)}</div>
+					</div>
+				`;
+			}).join('');
+		}
+
+		async function loadProfile() {
+			hideNotice();
+			const token = localStorage.getItem('token');
+
+			if (!token) {
+				document.getElementById('dashboardContent').style.display = 'none';
+				document.getElementById('emptyState').classList.add('active');
+				return;
+			}
+
+			try {
+				const profileResponse = await fetch(`${API_URL}/me`, {
+					headers: { Authorization: `Bearer ${token}` }
+				});
+
+				const profileData = await profileResponse.json();
+				if (!profileResponse.ok || !profileData.success || !profileData.user) {
+					localStorage.removeItem('token');
+					document.getElementById('dashboardContent').style.display = 'none';
+					document.getElementById('emptyState').classList.add('active');
+					showNotice('Session expired. Please sign in again.', 'error');
+					return;
+				}
+
+				setProfile(profileData.user);
+
+				const feedResponse = await fetch(`${SOCIAL_API_URL}/feed`, {
+					headers: { Authorization: `Bearer ${token}` }
+				});
+
+				const feedData = await feedResponse.json();
+				if (feedResponse.ok && feedData.success) {
+					renderFeed(feedData.feed || []);
+				} else {
+					renderFeed([]);
+				}
+			} catch (error) {
+				document.getElementById('dashboardContent').style.display = 'none';
+				document.getElementById('emptyState').classList.add('active');
+				showNotice('Could not load your profile.', 'error');
+			}
+		}
+
+		function refreshProfile() {
+			loadProfile();
+		}
+
+		function logout() {
+			localStorage.removeItem('token');
+			localStorage.removeItem('user');
+			showNotice('Logged out successfully.', 'success');
+			document.getElementById('dashboardContent').style.display = 'none';
+			document.getElementById('emptyState').classList.add('active');
+		}
+
+		window.addEventListener('DOMContentLoaded', loadProfile);
+	</script>
+</body>
+</html>

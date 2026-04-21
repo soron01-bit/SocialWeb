@@ -1,0 +1,42 @@
+[
+  {
+    "id": "msg_1776785020201_lcfj7yvul",
+    "fromUserId": "user_1776709448053_6vej8cpab",
+    "toUserId": "user_1776626705580_ms2obbui1",
+    "text": "hii",
+    "createdAt": "2026-04-21T15:23:40.201Z",
+    "conversationKey": "user_1776626705580_ms2obbui1__user_1776709448053_6vej8cpab"
+  },
+  {
+    "id": "msg_1776785087096_2944dm0r6",
+    "fromUserId": "user_1776626705580_ms2obbui1",
+    "toUserId": "user_1776709448053_6vej8cpab",
+    "text": "hii",
+    "createdAt": "2026-04-21T15:24:47.096Z",
+    "conversationKey": "user_1776626705580_ms2obbui1__user_1776709448053_6vej8cpab"
+  },
+  {
+    "id": "msg_1776785105361_gsdalskmy",
+    "fromUserId": "user_1776709448053_6vej8cpab",
+    "toUserId": "user_1776626705580_ms2obbui1",
+    "text": "hii",
+    "createdAt": "2026-04-21T15:25:05.361Z",
+    "conversationKey": "user_1776626705580_ms2obbui1__user_1776709448053_6vej8cpab"
+  },
+  {
+    "id": "msg_1776785112855_bau54xg56",
+    "fromUserId": "user_1776626705580_ms2obbui1",
+    "toUserId": "user_1776709448053_6vej8cpab",
+    "text": "hiii",
+    "createdAt": "2026-04-21T15:25:12.855Z",
+    "conversationKey": "user_1776626705580_ms2obbui1__user_1776709448053_6vej8cpab"
+  },
+  {
+    "id": "msg_1776785120218_whxxak4i0",
+    "fromUserId": "user_1776709448053_6vej8cpab",
+    "toUserId": "user_1776626705580_ms2obbui1",
+    "text": "ki koris?",
+    "createdAt": "2026-04-21T15:25:20.218Z",
+    "conversationKey": "user_1776626705580_ms2obbui1__user_1776709448053_6vej8cpab"
+  }
+]

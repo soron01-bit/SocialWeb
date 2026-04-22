@@ -3,9 +3,19 @@ const Post = require('../models/Post');
 const Message = require('../models/Message');
 const jwt = require('jsonwebtoken');
 
+const getJwtSecret = () => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || !secret.trim()) {
+    const error = new Error('Server configuration error: JWT_SECRET is missing');
+    error.statusCode = 500;
+    throw error;
+  }
+  return secret;
+};
+
 // Generate JWT Token
 const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, {
+  return jwt.sign({ userId }, getJwtSecret(), {
     expiresIn: process.env.JWT_EXPIRE
   });
 };
@@ -88,7 +98,10 @@ exports.signup = async (req, res) => {
     console.log(error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Sign up failed'
+      message:
+        error.message === 'Server configuration error: JWT_SECRET is missing'
+          ? 'Server is not configured correctly. Please contact admin.'
+          : error.message || 'Sign up failed'
     });
   }
 };
@@ -146,7 +159,10 @@ exports.signin = async (req, res) => {
     console.log(error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Sign in failed'
+      message:
+        error.message === 'Server configuration error: JWT_SECRET is missing'
+          ? 'Server is not configured correctly. Please contact admin.'
+          : error.message || 'Sign in failed'
     });
   }
 };

@@ -4,6 +4,11 @@ require('dotenv').config();
 
 const app = express();
 
+if (!process.env.JWT_SECRET || !process.env.JWT_SECRET.trim()) {
+  console.error('Missing required environment variable: JWT_SECRET');
+  process.exit(1);
+}
+
 // Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

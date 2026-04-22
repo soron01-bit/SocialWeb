@@ -29,27 +29,37 @@ function conversationKey(userAId, userBId) {
   return [userAId, userBId].sort().join('__');
 }
 
+function normalizeMessage(message) {
+  return {
+    ...message,
+    text: message.text || '',
+    photo: message.photo || null
+  };
+}
+
 class Message {
-  static send(fromUserId, toUserId, text) {
+  static send(fromUserId, toUserId, text, photo = null) {
     const messages = loadMessages();
     const nextMessage = {
       id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       fromUserId,
       toUserId,
       text,
+      photo,
       createdAt: new Date().toISOString(),
       conversationKey: conversationKey(fromUserId, toUserId)
     };
 
     messages.push(nextMessage);
     saveMessages(messages);
-    return nextMessage;
+    return normalizeMessage(nextMessage);
   }
 
   static getConversation(userAId, userBId) {
     const key = conversationKey(userAId, userBId);
     return loadMessages()
       .filter((message) => message.conversationKey === key)
+      .map((message) => normalizeMessage(message))
       .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
   }
 

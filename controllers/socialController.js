@@ -176,7 +176,7 @@ exports.getMessagesWithFriend = (req, res) => {
 
 exports.sendMessageToFriend = (req, res) => {
   const { friendId } = req.params;
-  const { text } = req.body;
+  const { text, photo } = req.body;
   const currentUser = User.findByIdWithPassword(req.user.userId);
 
   if (!currentUser) {
@@ -187,12 +187,19 @@ exports.sendMessageToFriend = (req, res) => {
     return res.status(400).json({ success: false, message: 'friendId is required' });
   }
 
-  if (!text || !text.trim()) {
-    return res.status(400).json({ success: false, message: 'Message text is required' });
+  const normalizedText = (text || '').trim();
+  const normalizedPhoto = typeof photo === 'string' && photo.trim() ? photo.trim() : null;
+
+  if (!normalizedText && !normalizedPhoto) {
+    return res.status(400).json({ success: false, message: 'Message text or photo is required' });
   }
 
-  if (text.trim().length > 1000) {
+  if (normalizedText.length > 1000) {
     return res.status(400).json({ success: false, message: 'Message is too long (max 1000 chars)' });
+  }
+
+  if (normalizedPhoto && normalizedPhoto.length > 9_000_000) {
+    return res.status(400).json({ success: false, message: 'Image is too large' });
   }
 
   if (!currentUser.friends.includes(friendId)) {
@@ -204,7 +211,7 @@ exports.sendMessageToFriend = (req, res) => {
     return res.status(404).json({ success: false, message: 'Friend not found' });
   }
 
-  const message = Message.send(currentUser.id, friendId, text.trim());
+  const message = Message.send(currentUser.id, friendId, normalizedText, normalizedPhoto);
 
   return res.status(201).json({
     success: true,

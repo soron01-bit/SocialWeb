@@ -176,6 +176,10 @@
     .composer {
       margin-top: 12px;
       display: grid;
+      gap: 10px;
+    }
+    .composer-row {
+      display: grid;
       grid-template-columns: 1fr auto;
       gap: 10px;
     }
@@ -199,6 +203,67 @@
       color: #fff;
       background: linear-gradient(135deg, #667eea, #7a52b5);
       cursor: pointer;
+    }
+    .attachment-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+    .attach-btn,
+    .clear-btn {
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-weight: 700;
+      background: #fff;
+      color: #111827;
+      cursor: pointer;
+    }
+    .attach-btn {
+      color: #667eea;
+      border-color: #c7d2fe;
+    }
+    .attachment-name {
+      font-size: 13px;
+      color: #6b7280;
+      word-break: break-word;
+    }
+    .attachment-preview {
+      display: none;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 10px;
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+      background: #f8fafc;
+    }
+    .attachment-preview.show {
+      display: flex;
+    }
+    .attachment-preview img {
+      width: 84px;
+      height: 84px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: #e5e7eb;
+      flex: 0 0 auto;
+    }
+    .preview-copy {
+      min-width: 0;
+    }
+    .preview-copy strong,
+    .preview-copy p {
+      display: block;
+      margin: 0;
+    }
+    .preview-copy p {
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 4px;
+      line-height: 1.4;
+      word-break: break-word;
     }
     .empty {
       color: #6b7280;
@@ -246,8 +311,23 @@
           <div class="empty">No conversation selected.</div>
         </div>
         <form id="composer" class="composer">
-          <input id="messageInput" type="text" maxlength="1000" placeholder="Type a message..." autocomplete="off" disabled>
-          <button id="sendBtn" class="send-btn" type="submit" disabled>Send</button>
+          <div class="attachment-row">
+            <button id="attachBtn" class="attach-btn" type="button" disabled>Attach image</button>
+            <span id="attachmentName" class="attachment-name">No image selected</span>
+            <input id="imageInput" type="file" accept="image/*" hidden disabled>
+          </div>
+          <div id="attachmentPreview" class="attachment-preview">
+            <img id="previewImage" alt="Selected image preview">
+            <div class="preview-copy">
+              <strong>Image ready to send</strong>
+              <p id="previewText">This image will be shared with your friend when you send the message.</p>
+            </div>
+            <button id="clearAttachmentBtn" class="clear-btn" type="button">Remove</button>
+          </div>
+          <div class="composer-row">
+            <input id="messageInput" type="text" maxlength="1000" placeholder="Type a message..." autocomplete="off" disabled>
+            <button id="sendBtn" class="send-btn" type="submit" disabled>Send</button>
+          </div>
         </form>
       </section>
     </div>
@@ -263,6 +343,8 @@
     let friends = [];
     let selectedFriendId = '';
     let refreshTimer = null;
+    let selectedPhoto = '';
+    let selectedPhotoName = '';
 
     function goHome() {
       window.location.href = `${BASE_ORIGIN}/`;
@@ -336,7 +418,8 @@
 
       chatBox.innerHTML = messages.map((message) => `
         <div class="bubble ${message.fromSelf ? 'self' : 'other'}">
-          <div>${escapeHtml(message.text)}</div>
+          ${message.photo ? `<img src="${escapeHtml(message.photo)}" alt="Shared image" style="display:block;max-width:100%;border-radius:12px;margin-bottom:${message.text ? '8px' : '0'};">` : ''}
+          ${message.text ? `<div>${escapeHtml(message.text)}</div>` : ''}
           <div class="meta">${new Date(message.createdAt).toLocaleString()}</div>
         </div>
       `).join('');
@@ -372,6 +455,8 @@
         document.getElementById('chatBox').innerHTML = '<div class="empty">No conversation selected.</div>';
         document.getElementById('messageInput').disabled = true;
         document.getElementById('sendBtn').disabled = true;
+        document.getElementById('attachBtn').disabled = true;
+        document.getElementById('imageInput').disabled = true;
         return;
       }
 
@@ -379,6 +464,8 @@
       document.getElementById('chatTitle').textContent = friend ? `Chat with ${friend.name}` : 'Chat';
       document.getElementById('messageInput').disabled = false;
       document.getElementById('sendBtn').disabled = false;
+      document.getElementById('attachBtn').disabled = false;
+      document.getElementById('imageInput').disabled = false;
 
       const response = await fetch(`${SOCIAL_API_URL}/messages/${encodeURIComponent(selectedFriendId)}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -411,7 +498,7 @@
 
       const input = document.getElementById('messageInput');
       const text = input.value.trim();
-      if (!text) {
+      if (!text && !selectedPhoto) {
         return;
       }
 
@@ -421,7 +508,7 @@
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ text })
+        body: JSON.stringify({ text, photo: selectedPhoto || null })
       });
 
       const data = await response.json();
@@ -430,7 +517,65 @@
       }
 
       input.value = '';
+      clearAttachment();
       await loadMessages();
+    }
+
+    function updateAttachmentPreview() {
+      const nameEl = document.getElementById('attachmentName');
+      const previewEl = document.getElementById('attachmentPreview');
+      const previewImage = document.getElementById('previewImage');
+
+      if (selectedPhoto) {
+        previewEl.classList.add('show');
+        previewImage.src = selectedPhoto;
+        previewImage.alt = selectedPhotoName || 'Selected image';
+        nameEl.textContent = selectedPhotoName ? `Selected: ${selectedPhotoName}` : 'Selected image';
+        return;
+      }
+
+      previewEl.classList.remove('show');
+      previewImage.removeAttribute('src');
+      nameEl.textContent = 'No image selected';
+    }
+
+    function clearAttachment() {
+      selectedPhoto = '';
+      selectedPhotoName = '';
+      document.getElementById('imageInput').value = '';
+      updateAttachmentPreview();
+    }
+
+    function handleImageSelection(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) {
+        clearAttachment();
+        return;
+      }
+
+      if (!file.type || !file.type.startsWith('image/')) {
+        showNotice('Please choose an image file', 'error');
+        clearAttachment();
+        return;
+      }
+
+      if (file.size > 6 * 1024 * 1024) {
+        showNotice('Please choose an image smaller than 6MB', 'error');
+        clearAttachment();
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        selectedPhoto = String(reader.result || '');
+        selectedPhotoName = file.name;
+        updateAttachmentPreview();
+      };
+      reader.onerror = () => {
+        showNotice('Could not read the selected image', 'error');
+        clearAttachment();
+      };
+      reader.readAsDataURL(file);
     }
 
     async function initPage() {
@@ -463,6 +608,14 @@
         showNotice(error.message || 'Could not send message', 'error');
       });
     });
+
+    document.getElementById('attachBtn').addEventListener('click', () => {
+      document.getElementById('imageInput').click();
+    });
+
+    document.getElementById('imageInput').addEventListener('change', handleImageSelection);
+
+    document.getElementById('clearAttachmentBtn').addEventListener('click', clearAttachment);
 
     window.addEventListener('beforeunload', () => {
       if (refreshTimer) {

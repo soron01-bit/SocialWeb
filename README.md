@@ -50,7 +50,7 @@ This repo is prepared for Render using `render.yaml`.
 2. In Render, click **New +** -> **Blueprint**.
 3. Select this repository.
 4. Render reads `render.yaml` and creates the web service.
-5. Set `JWT_SECRET` in Render environment variables.
+5. Set `JWT_SECRET` in Render environment variables (required because `sync: false` means Render will not auto-fill it).
 6. Deploy.
 
 ### Option B: Manual Web Service

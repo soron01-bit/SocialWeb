@@ -4,296 +4,90 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Dashboard - Auth System</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+	<script src="https://cdn.tailwindcss.com"></script>
+	<script>
+		tailwind.config = {
+			theme: {
+				extend: {
+					colors: {
+						brand: {
+							50: '#eef2ff',
+							100: '#e0e7ff',
+							500: '#667eea',
+							600: '#5b6ee0',
+							700: '#4f46e5'
+						},
+						accent: {
+							500: '#7a52b5'
+						}
+					},
+					fontFamily: {
+						sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif']
+					}
+				}
+			}
+		};
+	</script>
 	<style>
-		* { box-sizing: border-box; }
-		body {
-			margin: 0;
-			min-height: 100vh;
-			font-family: Arial, Helvetica, sans-serif;
-			color: #1f2937;
-			background:
-				radial-gradient(circle at top left, rgba(255,255,255,0.2), transparent 28%),
-				radial-gradient(circle at bottom right, rgba(255,255,255,0.16), transparent 24%),
-				linear-gradient(135deg, #6174ff, #8a56c6);
-			display: grid;
-			place-items: center;
-			padding: 18px;
-		}
-		.top-nav {
-			position: fixed;
-			top: 18px;
-			left: 18px;
-			right: 18px;
-			display: flex;
-			justify-content: space-between;
-			gap: 12px;
-			z-index: 5;
-		}
-		.nav-btn {
-			border: 0;
-			border-radius: 999px;
-			padding: 12px 16px;
-			font-weight: 700;
-			cursor: pointer;
-			color: #fff;
-			background: rgba(255,255,255,0.16);
-			backdrop-filter: blur(10px);
-			box-shadow: 0 12px 24px rgba(0,0,0,0.16);
-		}
-		.shell {
-			width: 100%;
-			max-width: 1120px;
-			margin-top: 64px;
-		}
-		.panel {
-			background: rgba(255,255,255,0.98);
-			border-radius: 24px;
-			box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
-			overflow: hidden;
-		}
-		.header {
-			padding: 26px 24px;
-			text-align: center;
-			color: #fff;
-			background: linear-gradient(135deg, #667eea, #7a52b5);
-		}
-		.header h1 {
-			margin: 0;
-			font-size: 30px;
-		}
-		.header p {
-			margin: 8px 0 0;
-			opacity: 0.9;
-		}
-		.content {
-			padding: 22px;
-		}
-		.dashboard-layout {
-			display: grid;
-			grid-template-columns: 360px minmax(0, 1fr);
-			gap: 18px;
-			align-items: start;
-		}
-		.dashboard-main {
-			display: grid;
-			gap: 18px;
-		}
-		.profile-card,
-		.panel-card {
-			background: #f8fafc;
-			border: 1px solid #e5e7eb;
-			border-radius: 20px;
-			padding: 22px;
-		}
-		.avatar {
-			width: 138px;
-			height: 138px;
-			display: block;
-			margin: 0 auto 18px;
-			border-radius: 50%;
-			object-fit: cover;
-			border: 5px solid #667eea;
-			box-shadow: 0 14px 30px rgba(102, 126, 234, 0.22);
-			background: #e5e7eb;
-		}
-		.welcome {
-			margin: 0;
-			text-align: center;
-			font-size: 34px;
-			line-height: 1.1;
-			color: #111827;
-		}
-		.muted {
-			margin: 8px 0 0;
-			text-align: center;
-			color: #6b7280;
-			font-size: 18px;
-		}
-		.handle {
-			margin: 12px 0 0;
-			text-align: center;
-			color: #667eea;
-			font-size: 22px;
-			font-weight: 700;
-		}
-		.stats {
-			display: grid;
-			gap: 10px;
-			margin-top: 18px;
-		}
-		.info-item {
-			background: #fff;
-			border: 1px solid #e5e7eb;
-			border-radius: 16px;
-			padding: 12px 14px;
-		}
-		.info-label {
-			display: block;
-			font-size: 12px;
-			color: #6b7280;
-			margin-bottom: 4px;
-		}
-		.info-value {
-			font-weight: 700;
-			word-break: break-word;
-			font-size: 16px;
-			color: #111827;
-		}
-		.actions {
-			display: grid;
-			grid-template-columns: 1fr;
-			gap: 12px;
-			margin-top: 18px;
-		}
-		.btn {
-			width: 100%;
-			border: 0;
-			border-radius: 14px;
-			padding: 14px 16px;
-			font-size: 15px;
-			font-weight: 700;
-			cursor: pointer;
-		}
-		.btn-primary { color: #fff; background: linear-gradient(135deg, #667eea, #7a52b5); }
-		.btn-secondary { color: #667eea; background: #eef2ff; }
-		.notice {
-			display: none;
-			padding: 12px 14px;
-			border-radius: 12px;
-			margin-bottom: 16px;
-			font-size: 14px;
-		}
+		.notice { display: none; }
 		.notice.show { display: block; }
-		.error { background: #fee2e2; color: #b91c1c; }
-		.success { background: #dcfce7; color: #166534; }
-		.empty-state {
-			display: none;
-			text-align: center;
-			padding: 18px 12px 0;
-			color: #475569;
-		}
+		.empty-state { display: none; }
 		.empty-state.active { display: block; }
-		.empty-state h2 {
-			margin: 0 0 10px;
-			font-size: 28px;
-			color: #111827;
-		}
-		.empty-state p {
-			margin: 0 0 16px;
-			line-height: 1.5;
-		}
-		.section-title {
-			margin: 0 0 12px;
-			font-size: 24px;
-			color: #111827;
-		}
-		.inline-list {
-			display: grid;
-			gap: 12px;
-		}
-		.list-item {
-			border: 1px solid #e5e7eb;
-			border-radius: 16px;
-			padding: 12px 14px;
-			background: #fff;
-		}
-		.list-row {
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-			gap: 12px;
-		}
-		.list-person {
-			display: flex;
-			align-items: center;
-			gap: 12px;
-			min-width: 0;
-		}
-		.feed-avatar {
-			width: 48px;
-			height: 48px;
-			border-radius: 50%;
-			object-fit: cover;
-			flex: 0 0 auto;
-			background: #e5e7eb;
-		}
-		.person-copy { min-width: 0; }
-		.small-note {
-			font-size: 12px;
-			color: #6b7280;
-			margin-top: 4px;
-		}
-		.spinner {
-			display: inline-block;
-			width: 18px;
-			height: 18px;
-			margin-right: 8px;
-			border: 2px solid #e5e7eb;
-			border-top-color: #667eea;
-			border-radius: 50%;
-			animation: spin 0.8s linear infinite;
-			vertical-align: -4px;
-		}
-		@keyframes spin { to { transform: rotate(360deg); } }
-		@media (max-width: 700px) {
-			body { padding: 12px; }
-			.top-nav { top: 12px; left: 12px; right: 12px; }
-			.shell { margin-top: 72px; }
-			.dashboard-layout { grid-template-columns: 1fr; }
-			.welcome { font-size: 28px; }
-			.muted { font-size: 16px; }
-			.handle { font-size: 18px; }
-			.actions { grid-template-columns: 1fr; }
-		}
+		.loading-state { display: none; }
+		.loading-state.show { display: block; }
 	</style>
 </head>
-<body>
-	<div class="top-nav">
-		<button class="nav-btn" type="button" onclick="goHome()">Home</button>
-		<button class="nav-btn" type="button" onclick="logout()">Logout</button>
+<body class="min-h-screen bg-[radial-gradient(circle_at_12%_10%,rgba(255,255,255,0.18),transparent_30%),radial-gradient(circle_at_90%_0%,rgba(255,255,255,0.14),transparent_32%),linear-gradient(140deg,#4557d6_0%,#6b53d4_50%,#8b52c0_100%)] p-3 text-slate-800 sm:p-4">
+	<div class="fixed inset-x-3 top-3 z-20 flex items-center justify-between gap-3 sm:inset-x-4 sm:top-4">
+		<button class="rounded-full border border-white/30 bg-white/20 px-4 py-2.5 text-sm font-bold text-white shadow-lg backdrop-blur transition hover:-translate-y-0.5" type="button" onclick="goHome()">Home</button>
+		<button class="rounded-full border border-white/30 bg-white/20 px-4 py-2.5 text-sm font-bold text-white shadow-lg backdrop-blur transition hover:-translate-y-0.5" type="button" onclick="logout()">Logout</button>
 	</div>
 
-	<div class="shell">
-		<div class="panel">
-			<div class="header">
-				<h1>Account Dashboard</h1>
-				<p>Tap in to view your profile</p>
+	<div class="mx-auto mt-16 w-full max-w-6xl sm:mt-20">
+		<div class="overflow-hidden rounded-3xl border border-white/55 bg-white/95 shadow-2xl">
+			<div class="bg-gradient-to-r from-brand-600 to-accent-500 px-6 py-7 text-center text-white">
+				<h1 class="text-3xl font-extrabold tracking-tight">Account Dashboard</h1>
+				<p class="mt-2 text-sm text-white/85">Tap in to view your profile</p>
 			</div>
-			<div class="content">
-				<div id="notice" class="notice"></div>
+			<div class="p-5 sm:p-6">
+				<div id="notice" class="notice mb-4 rounded-xl px-3.5 py-3 text-sm"></div>
+				<div id="pageLoading" class="loading-state mb-4 rounded-xl bg-brand-50 px-3.5 py-3 text-sm font-semibold text-brand-700">Loading your dashboard...</div>
 
-				<div id="emptyState" class="empty-state">
-					<h2>Sign in first</h2>
-					<p>You need an active session to view your account dashboard.</p>
-					<button class="btn btn-primary" type="button" onclick="goHome()">Go to Login</button>
+				<div id="emptyState" class="empty-state px-3 py-2 text-center text-slate-600">
+					<h2 class="text-3xl font-extrabold text-slate-900">Sign in first</h2>
+					<p class="mt-2 text-sm">You need an active session to view your account dashboard.</p>
+					<button class="mt-4 rounded-xl bg-gradient-to-r from-brand-600 to-accent-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition hover:-translate-y-0.5" type="button" onclick="goHome()">Go to Login</button>
 				</div>
 
-				<div id="dashboardContent" class="dashboard-layout">
-					<aside class="profile-card">
-						<img id="profilePhoto" class="avatar" alt="Profile photo">
-						<h2 id="welcomeName" class="welcome"></h2>
-						<p class="muted">Your account dashboard</p>
-						<p id="profileHandle" class="handle"></p>
+				<div id="dashboardContent" class="grid grid-cols-1 items-start gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
+					<aside class="rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
+						<img id="profilePhoto" class="mx-auto mb-4 h-36 w-36 rounded-full border-4 border-brand-500 bg-slate-200 object-cover shadow-lg" alt="Profile photo">
+						<h2 id="welcomeName" class="text-center text-3xl font-extrabold leading-tight text-slate-900"></h2>
+						<p class="mt-2 text-center text-base text-slate-500">Your account dashboard</p>
+						<p id="profileHandle" class="mt-2 text-center text-lg font-bold text-brand-600"></p>
 
-						<div class="stats">
-							<div class="info-item"><span class="info-label">Full Name</span><span id="fullName" class="info-value"></span></div>
-							<div class="info-item"><span class="info-label">Username</span><span id="username" class="info-value"></span></div>
-							<div class="info-item"><span class="info-label">Email</span><span id="email" class="info-value"></span></div>
-							<div class="info-item"><span class="info-label">User ID</span><span id="userId" class="info-value"></span></div>
-							<div class="info-item"><span class="info-label">Created</span><span id="createdAt" class="info-value"></span></div>
+						<div class="mt-5 grid gap-2.5">
+							<div class="rounded-xl border border-slate-200 bg-white px-3.5 py-3"><span class="mb-1 block text-xs text-slate-500">Full Name</span><span id="fullName" class="block break-words text-sm font-bold text-slate-900"></span></div>
+							<div class="rounded-xl border border-slate-200 bg-white px-3.5 py-3"><span class="mb-1 block text-xs text-slate-500">Username</span><span id="username" class="block break-words text-sm font-bold text-slate-900"></span></div>
+							<div class="rounded-xl border border-slate-200 bg-white px-3.5 py-3"><span class="mb-1 block text-xs text-slate-500">Email</span><span id="email" class="block break-words text-sm font-bold text-slate-900"></span></div>
+							<div class="rounded-xl border border-slate-200 bg-white px-3.5 py-3"><span class="mb-1 block text-xs text-slate-500">User ID</span><span id="userId" class="block break-words text-sm font-bold text-slate-900"></span></div>
+							<div class="rounded-xl border border-slate-200 bg-white px-3.5 py-3"><span class="mb-1 block text-xs text-slate-500">Created</span><span id="createdAt" class="block break-words text-sm font-bold text-slate-900"></span></div>
 						</div>
 
-						<div class="actions">
-							<button class="btn btn-primary" type="button" onclick="openMessagesPage()">Friends Messages</button>
-							<button class="btn btn-secondary" type="button" onclick="goHome()">Back</button>
-							<button class="btn btn-primary" type="button" onclick="refreshProfile()">Refresh</button>
+						<div class="mt-5 grid gap-3">
+							<button class="rounded-xl bg-gradient-to-r from-brand-600 to-accent-500 px-4 py-3 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5" type="button" onclick="openMessagesPage()">Friends Messages</button>
+							<button class="rounded-xl bg-brand-50 px-4 py-3 text-sm font-bold text-brand-700 transition hover:bg-brand-100" type="button" onclick="goHome()">Back</button>
+							<button id="refreshBtn" class="rounded-xl bg-gradient-to-r from-brand-600 to-accent-500 px-4 py-3 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70" type="button" onclick="refreshProfile()">Refresh</button>
 						</div>
 					</aside>
 
-					<div class="dashboard-main">
-						<section class="panel-card">
-							<h3 class="section-title">Friends Feed</h3>
-							<div id="feedList" class="inline-list"></div>
+					<div class="grid gap-5">
+						<section class="rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
+							<h3 class="mb-3 text-2xl font-extrabold text-slate-900">Friends Feed</h3>
+							<div id="feedList" class="grid gap-3"></div>
 						</section>
 					</div>
 				</div>
@@ -307,6 +101,8 @@
 			: 'http://localhost:5000';
 		const API_URL = `${BASE_ORIGIN}/api/auth`;
 		const SOCIAL_API_URL = `${BASE_ORIGIN}/api/social`;
+		let heartbeatTimer = null;
+		let noticeTimer = null;
 
 		function goHome() {
 			window.location.href = `${BASE_ORIGIN}/`;
@@ -319,13 +115,43 @@
 		function showNotice(message, type = 'success') {
 			const notice = document.getElementById('notice');
 			notice.textContent = message;
-			notice.className = `notice ${type} show`;
+			notice.className = `notice show mb-4 rounded-xl px-3.5 py-3 text-sm ${type === 'error' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`;
+
+			if (noticeTimer) {
+				clearTimeout(noticeTimer);
+			}
+
+			noticeTimer = setTimeout(() => {
+				hideNotice();
+			}, 3200);
 		}
 
 		function hideNotice() {
 			const notice = document.getElementById('notice');
 			notice.className = 'notice';
 			notice.textContent = '';
+		}
+
+		function setDashboardLoading(isLoading, text = 'Loading your dashboard...') {
+			const loading = document.getElementById('pageLoading');
+			if (!loading) {
+				return;
+			}
+
+			loading.textContent = text;
+			loading.className = isLoading
+				? 'loading-state show mb-4 rounded-xl bg-brand-50 px-3.5 py-3 text-sm font-semibold text-brand-700'
+				: 'loading-state mb-4 rounded-xl bg-brand-50 px-3.5 py-3 text-sm font-semibold text-brand-700';
+		}
+
+		function setRefreshBusy(isBusy) {
+			const refreshBtn = document.getElementById('refreshBtn');
+			if (!refreshBtn) {
+				return;
+			}
+
+			refreshBtn.disabled = isBusy;
+			refreshBtn.textContent = isBusy ? 'Refreshing...' : 'Refresh';
 		}
 
 		function defaultAvatar(name) {
@@ -351,6 +177,21 @@
 			return photo || defaultAvatar(name);
 		}
 
+		async function sendPresenceHeartbeat(token) {
+			if (!token) {
+				return;
+			}
+
+			try {
+				await fetch(`${SOCIAL_API_URL}/presence/heartbeat`, {
+					method: 'POST',
+					headers: { Authorization: `Bearer ${token}` }
+				});
+			} catch (error) {
+				// Keep dashboard usable even if heartbeat fails.
+			}
+		}
+
 		function setProfile(user) {
 			document.getElementById('emptyState').classList.remove('active');
 			document.getElementById('dashboardContent').style.display = 'grid';
@@ -368,7 +209,7 @@
 			const container = document.getElementById('feedList');
 
 			if (!feed.length) {
-				container.innerHTML = '<div class="small-note">No posts yet. Add friends and create posts.</div>';
+				container.innerHTML = '<div class="text-xs text-slate-500">No posts yet. Add friends and create posts.</div>';
 				return;
 			}
 
@@ -378,17 +219,17 @@
 				const authorUsername = author.username || 'unknown';
 
 				return `
-					<div class="list-item">
-						<div class="list-row" style="align-items: flex-start; margin-bottom: 10px;">
-							<div class="list-person">
-								<img class="feed-avatar" src="${escapeHtml(avatarSource(author.photo, authorName))}" alt="${escapeHtml(authorName)}">
-								<div class="person-copy">
-									<div class="post-meta" style="margin-bottom: 2px;"><strong>${escapeHtml(authorName)}</strong> (@${escapeHtml(authorUsername)})</div>
-									<div class="small-note">${new Date(post.createdAt).toLocaleString()}</div>
+					<div class="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+						<div class="mb-2.5 flex items-start justify-between gap-3">
+							<div class="flex min-w-0 items-center gap-3">
+								<img class="h-12 w-12 rounded-full bg-slate-200 object-cover" src="${escapeHtml(avatarSource(author.photo, authorName))}" alt="${escapeHtml(authorName)}">
+								<div class="min-w-0">
+									<div class="mb-0.5 text-sm text-slate-700"><strong>${escapeHtml(authorName)}</strong> (@${escapeHtml(authorUsername)})</div>
+									<div class="text-xs text-slate-500">${new Date(post.createdAt).toLocaleString()}</div>
 								</div>
 							</div>
 						</div>
-						<div>${escapeHtml(post.content)}</div>
+						<div class="text-sm text-slate-700">${escapeHtml(post.content)}</div>
 					</div>
 				`;
 			}).join('');
@@ -396,13 +237,19 @@
 
 		async function loadProfile() {
 			hideNotice();
+			setDashboardLoading(true);
+			setRefreshBusy(true);
 			const token = localStorage.getItem('token');
 
 			if (!token) {
+				setDashboardLoading(false);
+				setRefreshBusy(false);
 				document.getElementById('dashboardContent').style.display = 'none';
 				document.getElementById('emptyState').classList.add('active');
 				return;
 			}
+
+			document.getElementById('feedList').innerHTML = '<div class="rounded-xl border border-brand-100 bg-brand-50 px-3 py-2 text-sm text-brand-700">Loading feed...</div>';
 
 			try {
 				const profileResponse = await fetch(`${API_URL}/me`, {
@@ -412,6 +259,8 @@
 				const profileData = await profileResponse.json();
 				if (!profileResponse.ok || !profileData.success || !profileData.user) {
 					localStorage.removeItem('token');
+					setDashboardLoading(false);
+					setRefreshBusy(false);
 					document.getElementById('dashboardContent').style.display = 'none';
 					document.getElementById('emptyState').classList.add('active');
 					showNotice('Session expired. Please sign in again.', 'error');
@@ -419,6 +268,15 @@
 				}
 
 				setProfile(profileData.user);
+				await sendPresenceHeartbeat(token);
+
+				if (heartbeatTimer) {
+					clearInterval(heartbeatTimer);
+				}
+
+				heartbeatTimer = setInterval(() => {
+					sendPresenceHeartbeat(token).catch(() => {});
+				}, 20000);
 
 				const feedResponse = await fetch(`${SOCIAL_API_URL}/feed`, {
 					headers: { Authorization: `Bearer ${token}` }
@@ -430,7 +288,12 @@
 				} else {
 					renderFeed([]);
 				}
+
+				setDashboardLoading(false);
+				setRefreshBusy(false);
 			} catch (error) {
+				setDashboardLoading(false);
+				setRefreshBusy(false);
 				document.getElementById('dashboardContent').style.display = 'none';
 				document.getElementById('emptyState').classList.add('active');
 				showNotice('Could not load your profile.', 'error');
@@ -442,12 +305,23 @@
 		}
 
 		function logout() {
+			if (heartbeatTimer) {
+				clearInterval(heartbeatTimer);
+				heartbeatTimer = null;
+			}
+
 			localStorage.removeItem('token');
 			localStorage.removeItem('user');
 			showNotice('Logged out successfully.', 'success');
 			document.getElementById('dashboardContent').style.display = 'none';
 			document.getElementById('emptyState').classList.add('active');
 		}
+
+		window.addEventListener('beforeunload', () => {
+			if (heartbeatTimer) {
+				clearInterval(heartbeatTimer);
+			}
+		});
 
 		window.addEventListener('DOMContentLoaded', loadProfile);
 	</script>

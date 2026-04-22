@@ -4,329 +4,86 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Friends Messages - Auth System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif']
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#667eea',
+              600: '#5b6ce0',
+              700: '#4d5fcf'
+            },
+            accent: {
+              500: '#7a52b5'
+            }
+          }
+        }
+      }
+    };
+  </script>
   <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Arial, Helvetica, sans-serif;
-      color: #1f2937;
-      background:
-        radial-gradient(circle at top left, rgba(255,255,255,0.2), transparent 28%),
-        radial-gradient(circle at bottom right, rgba(255,255,255,0.16), transparent 24%),
-        linear-gradient(135deg, #6174ff, #8a56c6);
-      padding: 18px;
-    }
-    .top-nav {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    .nav-btn {
-      border: 0;
-      border-radius: 999px;
-      padding: 11px 16px;
-      font-weight: 700;
-      cursor: pointer;
-      color: #fff;
-      background: rgba(255,255,255,0.16);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 12px 24px rgba(0,0,0,0.16);
-    }
-    .shell {
-      max-width: 1120px;
-      margin: 0 auto;
-      background: rgba(255,255,255,0.98);
-      border-radius: 24px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
-      overflow: hidden;
-    }
-    .header {
-      padding: 24px;
-      color: #fff;
-      background: linear-gradient(135deg, #667eea, #7a52b5);
-    }
-    .header h1 {
-      margin: 0;
-      font-size: 28px;
-    }
-    .header p {
-      margin: 8px 0 0;
-      opacity: 0.9;
-    }
-    .notice {
-      display: none;
-      margin: 16px;
-      margin-bottom: 0;
-      padding: 12px 14px;
-      border-radius: 12px;
-      font-size: 14px;
-    }
-    .notice.show { display: block; }
-    .error { background: #fee2e2; color: #b91c1c; }
-    .success { background: #dcfce7; color: #166534; }
-    .layout {
-      display: grid;
-      grid-template-columns: 300px minmax(0, 1fr);
-      gap: 16px;
-      padding: 16px;
-    }
-    .panel {
-      background: #f8fafc;
-      border: 1px solid #e5e7eb;
-      border-radius: 16px;
-      padding: 14px;
-    }
-    .panel-title {
-      margin: 0 0 12px;
-      font-size: 20px;
-      color: #111827;
-    }
-    .friend-list {
-      display: grid;
-      gap: 10px;
-      max-height: 540px;
-      overflow: auto;
-      padding-right: 4px;
-    }
-    .friend-item {
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      background: #fff;
-      padding: 10px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .friend-item.active {
-      border-color: #667eea;
-      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
-    }
-    .avatar {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      object-fit: cover;
-      background: #dbe4ff;
-      flex: 0 0 auto;
-    }
-    .friend-copy {
-      min-width: 0;
-    }
-    .friend-copy strong,
-    .friend-copy small {
-      display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .friend-copy small {
-      color: #6b7280;
-      margin-top: 3px;
-    }
-    .chat-head {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-    .chat-title {
-      margin: 0;
-      font-size: 18px;
-      color: #111827;
-    }
-    .chat-box {
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      min-height: 440px;
-      max-height: 440px;
-      overflow: auto;
-      padding: 12px;
-      display: grid;
-      align-content: start;
-      gap: 8px;
-    }
-    .bubble {
-      max-width: 72%;
-      border-radius: 14px;
-      padding: 10px 12px;
-      line-height: 1.35;
-      word-break: break-word;
-    }
-    .bubble.self {
-      margin-left: auto;
-      background: #667eea;
-      color: #fff;
-      border-bottom-right-radius: 4px;
-    }
-    .bubble.other {
-      margin-right: auto;
-      background: #eef2ff;
-      color: #1f2937;
-      border-bottom-left-radius: 4px;
-    }
-    .meta {
-      margin-top: 5px;
-      font-size: 11px;
-      opacity: 0.7;
-    }
-    .composer {
-      margin-top: 12px;
-      display: grid;
-      gap: 10px;
-    }
-    .composer-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-    }
-    .composer input {
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      padding: 12px;
-      font-size: 15px;
-      outline: none;
-    }
-    .composer input:focus {
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12);
-    }
-    .send-btn {
-      border: 0;
-      border-radius: 10px;
-      padding: 0 16px;
-      font-size: 14px;
-      font-weight: 700;
-      color: #fff;
-      background: linear-gradient(135deg, #667eea, #7a52b5);
-      cursor: pointer;
-    }
-    .attachment-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px;
-    }
-    .attach-btn,
-    .clear-btn {
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-size: 14px;
-      font-weight: 700;
-      background: #fff;
-      color: #111827;
-      cursor: pointer;
-    }
-    .attach-btn {
-      color: #667eea;
-      border-color: #c7d2fe;
-    }
-    .attachment-name {
-      font-size: 13px;
-      color: #6b7280;
-      word-break: break-word;
-    }
     .attachment-preview {
       display: none;
-      gap: 10px;
-      align-items: flex-start;
-      padding: 10px;
-      border: 1px dashed #cbd5e1;
-      border-radius: 12px;
-      background: #f8fafc;
     }
     .attachment-preview.show {
       display: flex;
     }
-    .attachment-preview img {
-      width: 84px;
-      height: 84px;
-      border-radius: 10px;
-      object-fit: cover;
-      background: #e5e7eb;
-      flex: 0 0 auto;
-    }
-    .preview-copy {
-      min-width: 0;
-    }
-    .preview-copy strong,
-    .preview-copy p {
-      display: block;
-      margin: 0;
-    }
-    .preview-copy p {
-      font-size: 13px;
-      color: #6b7280;
-      margin-top: 4px;
-      line-height: 1.4;
-      word-break: break-word;
-    }
-    .empty {
-      color: #6b7280;
-      font-size: 14px;
-    }
-    @media (max-width: 800px) {
-      .layout {
-        grid-template-columns: 1fr;
-      }
-      .chat-box {
-        min-height: 300px;
-        max-height: 300px;
-      }
-      .bubble {
-        max-width: 85%;
-      }
-    }
   </style>
 </head>
-<body>
-  <div class="top-nav">
-    <button class="nav-btn" type="button" onclick="goHome()">Home</button>
-    <button class="nav-btn" type="button" onclick="goDashboard()">Dashboard</button>
+<body class="min-h-screen bg-[radial-gradient(circle_at_12%_10%,rgba(255,255,255,0.22),transparent_32%),radial-gradient(circle_at_90%_0%,rgba(255,255,255,0.18),transparent_34%),linear-gradient(145deg,#4557d6_0%,#6b53d4_50%,#8b52c0_100%)] px-3 py-4 text-slate-800 sm:px-5 sm:py-5">
+  <div class="mx-auto mb-4 flex w-full max-w-6xl gap-3">
+    <button class="rounded-full bg-white/15 px-4 py-2.5 font-bold text-white backdrop-blur-md shadow-lg transition hover:-translate-y-0.5 hover:bg-white/25" type="button" onclick="goHome()">Home</button>
+    <button class="ml-auto rounded-full bg-white/15 px-4 py-2.5 font-bold text-white backdrop-blur-md shadow-lg transition hover:-translate-y-0.5 hover:bg-white/25" type="button" onclick="goDashboard()">Dashboard</button>
   </div>
 
-  <div class="shell">
-    <div class="header">
-      <h1>Friends & Messages</h1>
-      <p>Select a friend and start chatting</p>
+  <div class="mx-auto w-full max-w-6xl overflow-hidden rounded-3xl border border-white/60 bg-white/95 shadow-2xl">
+    <div class="bg-gradient-to-r from-brand-600 to-accent-500 px-6 py-7 text-white">
+      <h1 class="text-3xl font-extrabold tracking-tight">Friends & Messages</h1>
+      <p class="mt-2 text-sm text-white/90 sm:text-base">Select a friend and start chatting</p>
     </div>
 
-    <div id="notice" class="notice"></div>
+    <div id="notice" class="hidden border-b px-5 py-3 text-sm font-semibold"></div>
 
-    <div class="layout">
-      <aside class="panel">
-        <h2 class="panel-title">Your Friends</h2>
-        <div id="friendList" class="friend-list"></div>
+    <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-[300px_minmax(0,1fr)]">
+      <aside class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <h2 class="mb-3 text-xl font-extrabold text-slate-900">Your Friends</h2>
+        <div id="friendList" class="grid max-h-[540px] gap-2.5 overflow-auto pr-1"></div>
       </aside>
 
-      <section class="panel">
-        <div class="chat-head">
-          <h2 id="chatTitle" class="chat-title">Choose a friend</h2>
+      <section class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <div class="mb-3 flex items-center gap-2.5">
+          <h2 id="chatTitle" class="text-lg font-extrabold text-slate-900">Choose a friend</h2>
         </div>
-        <div id="chatBox" class="chat-box">
-          <div class="empty">No conversation selected.</div>
+        <div id="chatBox" class="grid max-h-[440px] min-h-[440px] content-start gap-2 overflow-auto rounded-xl border border-slate-200 bg-white p-3 lg:max-h-[440px]">
+          <div class="text-sm text-slate-500">No conversation selected.</div>
         </div>
-        <form id="composer" class="composer">
-          <div class="attachment-row">
-            <button id="attachBtn" class="attach-btn" type="button" disabled>Attach image</button>
-            <span id="attachmentName" class="attachment-name">No image selected</span>
+        <form id="composer" class="mt-3 grid gap-2.5">
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button id="attachBtn" class="rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-sm font-bold text-brand-700 transition hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-60" type="button" disabled>Attach image</button>
+            <span id="attachmentName" class="text-sm text-slate-500">No image selected</span>
             <input id="imageInput" type="file" accept="image/*" hidden disabled>
           </div>
-          <div id="attachmentPreview" class="attachment-preview">
-            <img id="previewImage" alt="Selected image preview">
-            <div class="preview-copy">
-              <strong>Image ready to send</strong>
-              <p id="previewText">This image will be shared with your friend when you send the message.</p>
+          <div id="attachmentPreview" class="attachment-preview items-start gap-2.5 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-2.5">
+            <img id="previewImage" class="h-20 w-20 rounded-lg bg-slate-200 object-cover" alt="Selected image preview">
+            <div class="min-w-0">
+              <strong class="block text-sm font-bold text-slate-900">Image ready to send</strong>
+              <p id="previewText" class="mt-1 text-xs text-slate-500">This image will be shared with your friend when you send the message.</p>
             </div>
-            <button id="clearAttachmentBtn" class="clear-btn" type="button">Remove</button>
+            <button id="clearAttachmentBtn" class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-100" type="button">Remove</button>
           </div>
-          <div class="composer-row">
-            <input id="messageInput" type="text" maxlength="1000" placeholder="Type a message..." autocomplete="off" disabled>
-            <button id="sendBtn" class="send-btn" type="submit" disabled>Send</button>
+          <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-[1fr_auto]">
+            <input id="messageInput" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100 disabled:bg-slate-100" type="text" maxlength="1000" placeholder="Type a message..." autocomplete="off" disabled>
+            <button id="sendBtn" class="rounded-xl bg-gradient-to-r from-brand-600 to-accent-500 px-4 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60" type="submit" disabled>Send</button>
           </div>
         </form>
       </section>
@@ -343,8 +100,17 @@
     let friends = [];
     let selectedFriendId = '';
     let refreshTimer = null;
+    let heartbeatTimer = null;
     let selectedPhoto = '';
     let selectedPhotoName = '';
+    let currentMessages = [];
+    let messageNodeById = new Map();
+    let holdTimer = null;
+    let holdMessageId = '';
+    let deleteActionMessageId = '';
+    let noticeTimer = null;
+
+    const HOLD_TO_DELETE_MS = 600;
 
     function goHome() {
       window.location.href = `${BASE_ORIGIN}/`;
@@ -357,13 +123,35 @@
     function showNotice(message, type = 'success') {
       const notice = document.getElementById('notice');
       notice.textContent = message;
-      notice.className = `notice ${type} show`;
+      if (type === 'error') {
+        notice.className = 'block border-b border-red-200 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700';
+      } else {
+        notice.className = 'block border-b border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-700';
+      }
+
+      if (noticeTimer) {
+        clearTimeout(noticeTimer);
+      }
+
+      noticeTimer = setTimeout(() => {
+        hideNotice();
+      }, 2600);
     }
 
     function hideNotice() {
       const notice = document.getElementById('notice');
-      notice.className = 'notice';
+      notice.className = 'hidden border-b px-5 py-3 text-sm font-semibold';
       notice.textContent = '';
+    }
+
+    function setComposerBusy(isBusy, text = 'Send') {
+      const sendBtn = document.getElementById('sendBtn');
+      if (!sendBtn) {
+        return;
+      }
+
+      sendBtn.disabled = isBusy;
+      sendBtn.textContent = isBusy ? text : 'Send';
     }
 
     function escapeHtml(value) {
@@ -389,45 +177,189 @@
       return photo || defaultAvatar(name);
     }
 
+    function reactionButtons(message) {
+      const reactions = ['👍', '❤️', '😂', '😮'];
+      return reactions.map((reaction) => {
+        const active = message.myReaction === reaction;
+        return `<button class="rounded-full border px-2.5 py-1 text-[11px] font-bold transition ${active ? 'border-brand-500 bg-brand-500 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-brand-200 hover:bg-brand-50'}" type="button" onclick="reactToMessage('${escapeHtml(message.id)}', '${escapeHtml(reaction)}')">${reaction}</button>`;
+      }).join('');
+    }
+
+    function reactionSummary(message) {
+      const entries = Object.entries(message.reactionMap || {});
+      if (!entries.length) {
+        return '';
+      }
+
+      return entries
+        .map(([reaction, count]) => `<span class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">${reaction} ${count}</span>`)
+        .join(' ');
+    }
+
+    function getPresenceText(friend) {
+      if (friend && friend.online) {
+        return 'Online now';
+      }
+
+      if (friend && friend.lastSeenAt) {
+        return `Last seen ${new Date(friend.lastSeenAt).toLocaleTimeString()}`;
+      }
+
+      return 'Offline';
+    }
+
     function renderFriends() {
       const list = document.getElementById('friendList');
 
       if (!friends.length) {
-        list.innerHTML = '<div class="empty">No friends yet. Send and accept friend requests first.</div>';
+        list.innerHTML = '<div class="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-500">No friends yet. Send and accept friend requests first.</div>';
         return;
       }
 
       list.innerHTML = friends.map((friend) => `
-        <button class="friend-item ${selectedFriendId === friend.id ? 'active' : ''}" type="button" onclick="selectFriend('${escapeHtml(friend.id)}')">
-          <img class="avatar" src="${escapeHtml(avatarSource(friend.photo, friend.name))}" alt="${escapeHtml(friend.name)}">
-          <div class="friend-copy">
-            <strong>${escapeHtml(friend.name || 'Unknown')}</strong>
-            <small>@${escapeHtml(friend.username || 'user')}</small>
+        <button class="flex items-center gap-2.5 rounded-xl border bg-white px-3 py-2.5 text-left transition hover:border-brand-200 hover:bg-brand-50 ${selectedFriendId === friend.id ? 'border-brand-500 ring-2 ring-brand-100' : 'border-slate-200'}" type="button" onclick="selectFriend('${escapeHtml(friend.id)}')">
+          <img class="h-10 w-10 shrink-0 rounded-full bg-brand-100 object-cover" src="${escapeHtml(avatarSource(friend.photo, friend.name))}" alt="${escapeHtml(friend.name)}">
+          <div class="min-w-0">
+            <strong class="block truncate text-sm text-slate-900">${escapeHtml(friend.name || 'Unknown')}</strong>
+            <small class="mt-0.5 block truncate text-xs text-slate-500">@${escapeHtml(friend.username || 'user')}</small>
+            <div class="mt-1 flex items-center gap-1.5 text-xs text-slate-600"><span class="inline-block h-2 w-2 rounded-full ${friend.online ? 'bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.16)]' : 'bg-slate-400'}"></span>${escapeHtml(getPresenceText(friend))}</div>
           </div>
         </button>
       `).join('');
     }
 
-    function renderMessages(messages) {
+    function isNearBottom(container, threshold = 80) {
+      const remaining = container.scrollHeight - (container.scrollTop + container.clientHeight);
+      return remaining <= threshold;
+    }
+
+    function updateDeleteActionVisibility() {
+      const deleteButtons = document.querySelectorAll('[data-delete-button]');
+      deleteButtons.forEach((button) => {
+        const messageId = button.getAttribute('data-delete-message-id') || '';
+        const shouldShow = deleteActionMessageId && deleteActionMessageId === messageId;
+        button.classList.toggle('hidden', !shouldShow);
+      });
+    }
+
+    function messageSignature(message) {
+      return JSON.stringify({
+        id: message.id,
+        text: message.text || '',
+        photo: message.photo || '',
+        createdAt: message.createdAt,
+        fromSelf: Boolean(message.fromSelf),
+        myReaction: message.myReaction || '',
+        reactionMap: message.reactionMap || {}
+      });
+    }
+
+    function createMessageElement(message) {
+      const element = document.createElement('div');
+      element.setAttribute('data-message-id', message.id);
+      element.setAttribute('data-signature', messageSignature(message));
+      element.setAttribute('onpointerdown', `startMessageHold('${escapeHtml(message.id)}')`);
+      element.setAttribute('onpointerup', `endMessageHold('${escapeHtml(message.id)}')`);
+      element.setAttribute('onpointerleave', `cancelMessageHold('${escapeHtml(message.id)}')`);
+      element.setAttribute('onpointercancel', `cancelMessageHold('${escapeHtml(message.id)}')`);
+      element.setAttribute('oncontextmenu', 'return false;');
+      element.className = `group max-w-[85%] rounded-2xl px-3 py-2.5 text-sm leading-relaxed break-words ${message.fromSelf ? 'ml-auto rounded-br-md bg-brand-500 text-white' : 'mr-auto rounded-bl-md bg-brand-50 text-slate-800'} sm:max-w-[72%]`;
+      element.innerHTML = `
+        ${message.photo ? `<img src="${escapeHtml(message.photo)}" alt="Shared image" style="display:block;max-width:100%;border-radius:12px;margin-bottom:${message.text ? '8px' : '0'};">` : ''}
+        ${message.text ? `<div>${escapeHtml(message.text)}</div>` : ''}
+        <div class="mt-2 flex flex-wrap items-center gap-1.5">${reactionSummary(message)}</div>
+        <div class="mt-2 flex flex-wrap items-center gap-1.5 opacity-0 transition group-hover:opacity-100">
+          ${reactionButtons(message)}
+          <button data-delete-button="1" data-delete-message-id="${escapeHtml(message.id)}" class="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 hidden" type="button" onclick="deleteMessage('${escapeHtml(message.id)}')">Delete</button>
+        </div>
+        <div class="mt-1 text-[11px] opacity-70">${new Date(message.createdAt).toLocaleString()}</div>
+      `;
+
+      return element;
+    }
+
+    function clearMessageNodes() {
       const chatBox = document.getElementById('chatBox');
+      messageNodeById = new Map();
+      chatBox.innerHTML = '';
+    }
+
+    function showEmptyMessageState() {
+      const chatBox = document.getElementById('chatBox');
+      chatBox.innerHTML = '<div data-empty-state="1" class="text-sm text-slate-500">No messages yet. Say hello.</div>';
+    }
+
+    function renderMessagesIncremental(messages, options = {}) {
+      const chatBox = document.getElementById('chatBox');
+      const forceScroll = Boolean(options.forceScroll);
+      const wasNearBottom = forceScroll || isNearBottom(chatBox);
+      const previousScrollTop = chatBox.scrollTop;
 
       if (!messages.length) {
-        chatBox.innerHTML = '<div class="empty">No messages yet. Say hello.</div>';
+        clearMessageNodes();
+        showEmptyMessageState();
         return;
       }
 
-      chatBox.innerHTML = messages.map((message) => `
-        <div class="bubble ${message.fromSelf ? 'self' : 'other'}">
-          ${message.photo ? `<img src="${escapeHtml(message.photo)}" alt="Shared image" style="display:block;max-width:100%;border-radius:12px;margin-bottom:${message.text ? '8px' : '0'};">` : ''}
-          ${message.text ? `<div>${escapeHtml(message.text)}</div>` : ''}
-          <div class="meta">${new Date(message.createdAt).toLocaleString()}</div>
-        </div>
-      `).join('');
+      const emptyState = chatBox.querySelector('[data-empty-state="1"]');
+      if (emptyState) {
+        emptyState.remove();
+      }
 
-      chatBox.scrollTop = chatBox.scrollHeight;
+      const incomingIds = new Set(messages.map((message) => message.id));
+      Array.from(messageNodeById.keys()).forEach((messageId) => {
+        if (incomingIds.has(messageId)) {
+          return;
+        }
+
+        const node = messageNodeById.get(messageId);
+        if (node && node.parentElement === chatBox) {
+          node.remove();
+        }
+
+        messageNodeById.delete(messageId);
+      });
+
+      let previousNode = null;
+      messages.forEach((message) => {
+        const existingNode = messageNodeById.get(message.id);
+        const signature = messageSignature(message);
+        let nodeToUse = existingNode;
+
+        if (!existingNode) {
+          nodeToUse = createMessageElement(message);
+          if (previousNode && previousNode.parentElement === chatBox) {
+            previousNode.after(nodeToUse);
+          } else {
+            chatBox.prepend(nodeToUse);
+          }
+          messageNodeById.set(message.id, nodeToUse);
+        } else if (existingNode.getAttribute('data-signature') !== signature) {
+          const updatedNode = createMessageElement(message);
+          existingNode.replaceWith(updatedNode);
+          nodeToUse = updatedNode;
+          messageNodeById.set(message.id, updatedNode);
+        }
+
+        if (previousNode && nodeToUse.previousElementSibling !== previousNode) {
+          previousNode.after(nodeToUse);
+        }
+
+        previousNode = nodeToUse;
+      });
+
+      updateDeleteActionVisibility();
+
+      if (wasNearBottom) {
+        chatBox.scrollTop = chatBox.scrollHeight;
+      } else {
+        chatBox.scrollTop = previousScrollTop;
+      }
     }
 
     async function loadFriends() {
+      document.getElementById('friendList').innerHTML = '<div class="rounded-xl border border-brand-100 bg-brand-50 px-3 py-2.5 text-sm font-semibold text-brand-700">Loading friends...</div>';
+
       const response = await fetch(`${SOCIAL_API_URL}/friends`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -449,10 +381,15 @@
       renderFriends();
     }
 
-    async function loadMessages() {
+    async function loadMessages(options = {}) {
+      const forceScroll = Boolean(options.forceScroll);
+
       if (!selectedFriendId) {
+        currentMessages = [];
+        deleteActionMessageId = '';
+        clearMessageNodes();
         document.getElementById('chatTitle').textContent = 'Choose a friend';
-        document.getElementById('chatBox').innerHTML = '<div class="empty">No conversation selected.</div>';
+        document.getElementById('chatBox').innerHTML = '<div class="text-sm text-slate-500">No conversation selected.</div>';
         document.getElementById('messageInput').disabled = true;
         document.getElementById('sendBtn').disabled = true;
         document.getElementById('attachBtn').disabled = true;
@@ -461,7 +398,9 @@
       }
 
       const friend = friends.find((item) => item.id === selectedFriendId);
-      document.getElementById('chatTitle').textContent = friend ? `Chat with ${friend.name}` : 'Chat';
+      document.getElementById('chatTitle').textContent = friend
+        ? `Chat with ${friend.name} (${friend.online ? 'Online' : 'Offline'})`
+        : 'Chat';
       document.getElementById('messageInput').disabled = false;
       document.getElementById('sendBtn').disabled = false;
       document.getElementById('attachBtn').disabled = false;
@@ -476,13 +415,48 @@
         throw new Error(data.message || 'Could not load messages');
       }
 
-      renderMessages(data.messages || []);
+      currentMessages = data.messages || [];
+      deleteActionMessageId = '';
+      renderMessagesIncremental(currentMessages, { forceScroll });
+    }
+
+    function startMessageHold(messageId) {
+      cancelMessageHold();
+      holdMessageId = messageId;
+      holdTimer = window.setTimeout(() => {
+        deleteActionMessageId = messageId;
+        holdTimer = null;
+        holdMessageId = '';
+        updateDeleteActionVisibility();
+      }, HOLD_TO_DELETE_MS);
+    }
+
+    function endMessageHold(messageId) {
+      if (holdTimer && holdMessageId === messageId) {
+        clearTimeout(holdTimer);
+        holdTimer = null;
+        holdMessageId = '';
+      }
+    }
+
+    function cancelMessageHold(messageId) {
+      if (messageId && holdMessageId && holdMessageId !== messageId) {
+        return;
+      }
+
+      if (holdTimer) {
+        clearTimeout(holdTimer);
+      }
+
+      holdTimer = null;
+      holdMessageId = '';
     }
 
     function selectFriend(friendId) {
       selectedFriendId = friendId;
       renderFriends();
-      loadMessages().catch((error) => {
+      clearMessageNodes();
+      loadMessages({ forceScroll: true }).catch((error) => {
         showNotice(error.message || 'Could not load conversation', 'error');
       });
     }
@@ -502,23 +476,89 @@
         return;
       }
 
-      const response = await fetch(`${SOCIAL_API_URL}/messages/${encodeURIComponent(selectedFriendId)}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ text, photo: selectedPhoto || null })
-      });
+      setComposerBusy(true, 'Sending...');
 
-      const data = await response.json();
-      if (!response.ok || !data.success) {
-        throw new Error(data.message || 'Could not send message');
+      try {
+        const response = await fetch(`${SOCIAL_API_URL}/messages/${encodeURIComponent(selectedFriendId)}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ text, photo: selectedPhoto || null })
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || 'Could not send message');
+        }
+
+        input.value = '';
+        clearAttachment();
+        await loadMessages({ forceScroll: true });
+      } finally {
+        setComposerBusy(false);
+      }
+    }
+
+    async function reactToMessage(messageId, reaction) {
+      if (!selectedFriendId) {
+        return;
       }
 
-      input.value = '';
-      clearAttachment();
-      await loadMessages();
+      try {
+        setComposerBusy(true, 'Updating...');
+        const response = await fetch(`${SOCIAL_API_URL}/messages/${encodeURIComponent(selectedFriendId)}/${encodeURIComponent(messageId)}/reaction`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ reaction })
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || 'Could not update reaction');
+        }
+
+        await loadMessages();
+      } catch (error) {
+        showNotice(error.message || 'Could not update reaction', 'error');
+      } finally {
+        setComposerBusy(false);
+      }
+    }
+
+    async function deleteMessage(messageId) {
+      if (!selectedFriendId) {
+        return;
+      }
+
+      if (!window.confirm('Delete this message?')) {
+        return;
+      }
+
+      try {
+        setComposerBusy(true, 'Deleting...');
+        const response = await fetch(`${SOCIAL_API_URL}/messages/${encodeURIComponent(selectedFriendId)}/${encodeURIComponent(messageId)}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || 'Could not delete message');
+        }
+
+        await loadMessages();
+      } catch (error) {
+        showNotice(error.message || 'Could not delete message', 'error');
+      } finally {
+        setComposerBusy(false);
+      }
     }
 
     function updateAttachmentPreview() {
@@ -578,6 +618,21 @@
       reader.readAsDataURL(file);
     }
 
+    async function sendPresenceHeartbeat() {
+      if (!token) {
+        return;
+      }
+
+      try {
+        await fetch(`${SOCIAL_API_URL}/presence/heartbeat`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } catch (error) {
+        // Ignore heartbeat errors to keep chat usable.
+      }
+    }
+
     async function initPage() {
       token = localStorage.getItem('token') || '';
       if (!token) {
@@ -587,10 +642,15 @@
 
       try {
         await loadFriends();
-        await loadMessages();
+        await loadMessages({ forceScroll: true });
+        await sendPresenceHeartbeat();
 
         if (refreshTimer) {
           clearInterval(refreshTimer);
+        }
+
+        if (heartbeatTimer) {
+          clearInterval(heartbeatTimer);
         }
 
         refreshTimer = setInterval(() => {
@@ -598,6 +658,10 @@
             .then(() => loadMessages())
             .catch(() => {});
         }, 4000);
+
+        heartbeatTimer = setInterval(() => {
+          sendPresenceHeartbeat().catch(() => {});
+        }, 20000);
       } catch (error) {
         showNotice(error.message || 'Could not load messages page', 'error');
       }
@@ -620,6 +684,10 @@
     window.addEventListener('beforeunload', () => {
       if (refreshTimer) {
         clearInterval(refreshTimer);
+      }
+
+      if (heartbeatTimer) {
+        clearInterval(heartbeatTimer);
       }
     });
 

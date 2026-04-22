@@ -4,15 +4,45 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Auth System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif']
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#667eea',
+              600: '#5b6ce0',
+              700: '#4d5fcf'
+            },
+            accent: {
+              500: '#7a52b5'
+            }
+          }
+        }
+      }
+    };
+  </script>
   <style>
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: Manrope, Arial, Helvetica, sans-serif;
       min-height: 100vh;
       display: grid;
       place-items: center;
-      background: linear-gradient(135deg, #6174ff, #8a56c6);
+      background:
+        radial-gradient(circle at 14% 20%, rgba(255, 255, 255, 0.18), transparent 30%),
+        radial-gradient(circle at 86% 0%, rgba(255, 255, 255, 0.14), transparent 32%),
+        linear-gradient(140deg, #4557d6 0%, #6b53d4 50%, #8b52c0 100%);
       color: #1f2937;
     }
     .container {
@@ -21,9 +51,10 @@
       padding: 20px;
     }
     .card {
-      background: #fff;
-      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 22px;
       overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.58);
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
     }
     .header {
@@ -165,23 +196,38 @@
       width: 100%;
       padding: 14px;
       border: 1px solid #d1d5db;
-      border-radius: 10px;
+      border-radius: 14px;
       font-size: 15px;
       outline: none;
+      background: #f8fafc;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
     }
-    input:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12); }
+    input:focus {
+      border-color: #667eea;
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.14);
+    }
     small { display: block; margin-top: 6px; color: #6b7280; }
     .btn {
       width: 100%;
       border: 0;
-      border-radius: 10px;
+      border-radius: 14px;
       padding: 14px 16px;
       font-size: 16px;
       font-weight: 700;
       cursor: pointer;
-      transition: transform 0.15s ease, opacity 0.15s ease;
+      transition: transform 0.22s ease, opacity 0.2s ease, box-shadow 0.22s ease;
     }
-    .btn:hover { transform: translateY(-1px); }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(67, 56, 202, 0.2);
+    }
+    .btn:disabled {
+      opacity: 0.82;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
     .btn-primary { color: #fff; background: linear-gradient(135deg, #667eea, #7a52b5); }
     .btn-secondary {
       margin-top: 12px;
@@ -297,6 +343,29 @@
       font-size: 12px;
       color: #6b7280;
       margin-top: 4px;
+    }
+    .small-note.loading {
+      color: #4f46e5;
+      font-weight: 700;
+    }
+    .presence-line {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #4b5563;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .presence-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      background: #9ca3af;
+    }
+    .presence-dot.online {
+      background: #16a34a;
+      box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.12);
     }
     .mini-btn {
       border: 0;
@@ -415,6 +484,26 @@
       animation: spin 0.8s linear infinite;
       vertical-align: -4px;
     }
+    .btn-spinner {
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: none;
+      vertical-align: -3px;
+    }
+    .btn.is-loading .btn-spinner {
+      display: inline-block;
+    }
+    .mini-btn.is-busy,
+    .action-btn.is-busy,
+    .btn.is-busy {
+      opacity: 0.75;
+      pointer-events: none;
+    }
     @keyframes spin { to { transform: rotate(360deg); } }
     @media (max-width: 700px) {
       .container { padding: 12px; }
@@ -431,10 +520,10 @@
     }
   </style>
 </head>
-<body>
-  <div class="container">
-    <div class="card">
-      <div class="header">
+<body class="min-h-screen bg-[radial-gradient(circle_at_12%_10%,rgba(255,255,255,0.22),transparent_32%),radial-gradient(circle_at_90%_0%,rgba(255,255,255,0.18),transparent_34%),linear-gradient(145deg,#4557d6_0%,#6b53d4_50%,#8b52c0_100%)]">
+  <div class="container w-full max-w-6xl px-3 py-4 sm:px-5 sm:py-6">
+    <div class="card overflow-hidden rounded-3xl border border-white/60 bg-white/95 shadow-2xl">
+      <div class="header bg-gradient-to-r from-brand-600 to-accent-500">
         <h1>🔐 Auth System</h1>
         <p>Node.js Authentication</p>
       </div>
@@ -553,8 +642,10 @@
             <label for="signin-password">Password</label>
             <input id="signin-password" type="password" placeholder="Enter your password" required>
           </div>
-          <div id="signinLoading" class="loading"><span class="spinner"></span>Signing in...</div>
-          <button class="btn btn-primary" type="submit">Sign In</button>
+          <button id="signinBtn" class="btn btn-primary" type="submit">
+            <span class="btn-spinner" aria-hidden="true"></span>
+            <span id="signinBtnLabel">Sign In</span>
+          </button>
           <button class="btn btn-secondary" type="button" onclick="toggleForms()">Don't have account? Sign Up</button>
         </form>
 
@@ -605,6 +696,9 @@
     const SOCIAL_API_URL = `${BASE_ORIGIN}/api/social`;
     let cachedUsers = [];
     let currentUserState = null;
+    let socialRefreshTimer = null;
+    let heartbeatTimer = null;
+    let noticeTimer = null;
 
     function toggleForms() {
       document.getElementById('signinForm').classList.toggle('form-hidden');
@@ -613,22 +707,74 @@
     }
 
     function clearMessages() {
+      if (noticeTimer) {
+        clearTimeout(noticeTimer);
+        noticeTimer = null;
+      }
+
       document.getElementById('errorMsg').className = 'notice error';
       document.getElementById('errorMsg').textContent = '';
       document.getElementById('successMsg').className = 'notice success';
       document.getElementById('successMsg').textContent = '';
     }
 
+    function scheduleNoticeClear() {
+      if (noticeTimer) {
+        clearTimeout(noticeTimer);
+      }
+
+      noticeTimer = setTimeout(() => {
+        clearMessages();
+      }, 3200);
+    }
+
     function showError(message) {
       const box = document.getElementById('errorMsg');
       box.textContent = message;
       box.className = 'notice error show';
+      scheduleNoticeClear();
     }
 
     function showSuccess(message) {
       const box = document.getElementById('successMsg');
       box.textContent = message;
       box.className = 'notice success show';
+      scheduleNoticeClear();
+    }
+
+    function setElementLoading(targetId, loadingText) {
+      const target = document.getElementById(targetId);
+      if (!target) {
+        return;
+      }
+
+      target.innerHTML = `<div class="small-note loading">${escapeHtml(loadingText || 'Loading...')}</div>`;
+    }
+
+    function setBusyState(button, isBusy, busyText) {
+      if (!button) {
+        return;
+      }
+
+      if (!button.dataset.originalText) {
+        button.dataset.originalText = button.textContent;
+      }
+
+      button.disabled = isBusy;
+      button.classList.toggle('is-busy', isBusy);
+      button.textContent = isBusy ? busyText : button.dataset.originalText;
+    }
+
+    function setButtonLoading(buttonId, labelId, isLoading, loadingText, defaultText) {
+      const button = document.getElementById(buttonId);
+      const label = document.getElementById(labelId);
+      if (!button || !label) {
+        return;
+      }
+
+      button.disabled = isLoading;
+      button.classList.toggle('is-loading', isLoading);
+      label.textContent = isLoading ? loadingText : defaultText;
     }
 
     function fileToBase64(file) {
@@ -784,6 +930,8 @@
       }
 
       loadSocialData(token);
+      sendPresenceHeartbeat(token);
+      startBackgroundSync(token);
       setDashboardView('home');
     }
 
@@ -804,7 +952,64 @@
       return `<img class="${className}" src="${escapeHtml(avatarSource(photo, name))}" alt="${escapeHtml(altText || name || 'Profile photo')}">`;
     }
 
+    function getPresenceText(user) {
+      if (user && user.online) {
+        return 'Online now';
+      }
+
+      if (user && user.lastSeenAt) {
+        return `Last seen ${new Date(user.lastSeenAt).toLocaleTimeString()}`;
+      }
+
+      return 'Offline';
+    }
+
+    async function sendPresenceHeartbeat(token) {
+      if (!token) {
+        return;
+      }
+
+      try {
+        await fetch(`${SOCIAL_API_URL}/presence/heartbeat`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } catch (error) {
+        // Keep UI responsive even if heartbeat fails.
+      }
+    }
+
+    function stopBackgroundSync() {
+      if (socialRefreshTimer) {
+        clearInterval(socialRefreshTimer);
+        socialRefreshTimer = null;
+      }
+
+      if (heartbeatTimer) {
+        clearInterval(heartbeatTimer);
+        heartbeatTimer = null;
+      }
+    }
+
+    function startBackgroundSync(token) {
+      stopBackgroundSync();
+
+      socialRefreshTimer = setInterval(() => {
+        loadSocialData(token).catch(() => {});
+      }, 12000);
+
+      heartbeatTimer = setInterval(() => {
+        sendPresenceHeartbeat(token).catch(() => {});
+      }, 20000);
+    }
+
     async function loadSocialData(token) {
+      setElementLoading('usersList', 'Loading people...');
+      setElementLoading('friendsOnlyList', 'Loading friends...');
+      setElementLoading('friendRequests', 'Loading requests...');
+      setElementLoading('feedList', 'Loading feed...');
+      setElementLoading('homeFeedList', 'Loading home feed...');
+
       const loadSection = async (url, fallback) => {
         try {
           const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
@@ -824,18 +1029,18 @@
         }
       };
 
-      const usersData = await loadSection(`${SOCIAL_API_URL}/users`, { users: [] });
+      const [usersData, requestsData, feedData, allFeedData] = await Promise.all([
+        loadSection(`${SOCIAL_API_URL}/users`, { users: [] }),
+        loadSection(`${SOCIAL_API_URL}/friend-requests`, { requests: [] }),
+        loadSection(`${SOCIAL_API_URL}/feed`, { feed: [] }),
+        loadSection(`${SOCIAL_API_URL}/feed/all`, { feed: [] })
+      ]);
+
       cachedUsers = usersData.users || [];
       renderUsers(cachedUsers);
       renderFriendsList(cachedUsers);
-
-      const requestsData = await loadSection(`${SOCIAL_API_URL}/friend-requests`, { requests: [] });
       renderFriendRequests(requestsData.requests || []);
-
-      const feedData = await loadSection(`${SOCIAL_API_URL}/feed`, { feed: [] });
       renderFeed(feedData.feed || []);
-
-      const allFeedData = await loadSection(`${SOCIAL_API_URL}/feed/all`, { feed: [] });
       renderHomeFeed(allFeedData.feed || []);
     }
 
@@ -869,7 +1074,7 @@
                   <div class="small-note">${escapeHtml(user.email)} - ${relationText}</div>
                 </div>
               </div>
-              <button class="mini-btn" onclick="sendFriendRequest('${user.id}')" ${disableSend ? 'disabled' : ''}>Send Request</button>
+              <button class="mini-btn" onclick="sendFriendRequest('${user.id}', this)" ${disableSend ? 'disabled' : ''}>Send Request</button>
             </div>
           </div>
         `;
@@ -893,6 +1098,7 @@
               <div class="person-copy">
                 <strong>${escapeHtml(user.name)}</strong> (@${escapeHtml(user.username)})
                 <div class="small-note">${escapeHtml(user.email)} - Friends</div>
+                <div class="presence-line"><span class="presence-dot ${user.online ? 'online' : ''}"></span>${escapeHtml(getPresenceText(user))}</div>
               </div>
             </div>
           </div>
@@ -917,7 +1123,7 @@
                 <div class="small-note">${escapeHtml(user.email)}</div>
               </div>
             </div>
-            <button class="mini-btn" onclick="acceptFriendRequest('${user.id}')">Accept</button>
+            <button class="mini-btn" onclick="acceptFriendRequest('${user.id}', this)">Accept</button>
           </div>
         </div>
       `).join('');
@@ -974,10 +1180,10 @@
             ${post.content ? `<div>${escapeHtml(post.content)}</div>` : ''}
             ${post.photo ? `<img class="post-image" src="${escapeHtml(post.photo)}" alt="Post photo">` : ''}
             <div class="post-actions">
-              <button class="action-btn" onclick="toggleLikePost('${post.id}')">${likedByMe ? 'Unlike' : 'Like'} (${likesCount})</button>
+              <button class="action-btn" onclick="toggleLikePost('${post.id}', this)">${likedByMe ? 'Unlike' : 'Like'} (${likesCount})</button>
               <button class="action-btn" onclick="toggleComments('${commentsWrapId}')">Comments (${comments.length})</button>
               ${canDelete ? `<button class="action-btn" onclick="togglePostEditForm('${editFormId}')">Edit</button>` : ''}
-              ${canDelete ? `<button class="action-btn action-btn-danger" onclick="deletePost('${post.id}')">Delete</button>` : ''}
+              ${canDelete ? `<button class="action-btn action-btn-danger" onclick="deletePost('${post.id}', this)">Delete</button>` : ''}
             </div>
             ${canDelete ? `
               <div id="${editFormId}" class="post-edit-form" style="display: none;">
@@ -985,7 +1191,7 @@
                 <input id="${editPhotoId}" type="file" accept="image/*">
                 <label class="small-note" style="margin-top: 0;"><input id="${editRemovePhotoId}" type="checkbox"> Remove current photo</label>
                 <div class="post-edit-actions">
-                  <button class="mini-btn" onclick="saveEditedPost('${post.id}', '${editContentId}', '${editPhotoId}', '${editRemovePhotoId}', '${editFormId}')">Save Edit</button>
+                  <button class="mini-btn" onclick="saveEditedPost('${post.id}', '${editContentId}', '${editPhotoId}', '${editRemovePhotoId}', '${editFormId}', this)">Save Edit</button>
                   <button class="action-btn" onclick="togglePostEditForm('${editFormId}')">Cancel</button>
                 </div>
               </div>
@@ -994,7 +1200,7 @@
               ${commentsHtml}
               <div class="comment-form">
                 <input id="${commentInputId}" class="comment-input" type="text" maxlength="300" placeholder="Write a comment...">
-                <button class="mini-btn" onclick="addCommentToPost('${post.id}', '${commentInputId}')">Comment</button>
+                <button class="mini-btn" onclick="addCommentToPost('${post.id}', '${commentInputId}', this)">Comment</button>
               </div>
             </div>
           </div>
@@ -1053,10 +1259,10 @@
             ${post.content ? `<div>${escapeHtml(post.content)}</div>` : ''}
             ${post.photo ? `<img class="post-image" src="${escapeHtml(post.photo)}" alt="Post photo">` : ''}
             <div class="post-actions">
-              <button class="action-btn" onclick="toggleLikePost('${post.id}')">${likedByMe ? 'Unlike' : 'Like'} (${likesCount})</button>
+              <button class="action-btn" onclick="toggleLikePost('${post.id}', this)">${likedByMe ? 'Unlike' : 'Like'} (${likesCount})</button>
               <button class="action-btn" onclick="toggleComments('${commentsWrapId}')">Comments (${comments.length})</button>
               ${canDelete ? `<button class="action-btn" onclick="togglePostEditForm('${editFormId}')">Edit</button>` : ''}
-              ${canDelete ? `<button class="action-btn action-btn-danger" onclick="deletePost('${post.id}')">Delete</button>` : ''}
+              ${canDelete ? `<button class="action-btn action-btn-danger" onclick="deletePost('${post.id}', this)">Delete</button>` : ''}
             </div>
             ${canDelete ? `
               <div id="${editFormId}" class="post-edit-form" style="display: none;">
@@ -1064,7 +1270,7 @@
                 <input id="${editPhotoId}" type="file" accept="image/*">
                 <label class="small-note" style="margin-top: 0;"><input id="${editRemovePhotoId}" type="checkbox"> Remove current photo</label>
                 <div class="post-edit-actions">
-                  <button class="mini-btn" onclick="saveEditedPost('${post.id}', '${editContentId}', '${editPhotoId}', '${editRemovePhotoId}', '${editFormId}')">Save Edit</button>
+                  <button class="mini-btn" onclick="saveEditedPost('${post.id}', '${editContentId}', '${editPhotoId}', '${editRemovePhotoId}', '${editFormId}', this)">Save Edit</button>
                   <button class="action-btn" onclick="togglePostEditForm('${editFormId}')">Cancel</button>
                 </div>
               </div>
@@ -1073,7 +1279,7 @@
               ${commentsHtml}
               <div class="comment-form">
                 <input id="${commentInputId}" class="comment-input" type="text" maxlength="300" placeholder="Write a comment...">
-                <button class="mini-btn" onclick="addCommentToPost('${post.id}', '${commentInputId}')">Comment</button>
+                <button class="mini-btn" onclick="addCommentToPost('${post.id}', '${commentInputId}', this)">Comment</button>
               </div>
             </div>
           </div>
@@ -1099,7 +1305,7 @@
       form.style.display = form.style.display === 'none' ? 'grid' : 'none';
     }
 
-    async function saveEditedPost(postId, contentInputId, photoInputId, removePhotoInputId, formId) {
+    async function saveEditedPost(postId, contentInputId, photoInputId, removePhotoInputId, formId, triggerBtn) {
       const token = localStorage.getItem('token');
       if (!token) {
         showError('Please sign in again.');
@@ -1115,6 +1321,7 @@
       }
 
       clearMessages();
+      setBusyState(triggerBtn, true, 'Saving...');
 
       try {
         const photo = photoInput.files[0] ? await fileToBase64(photoInput.files[0]) : null;
@@ -1146,10 +1353,12 @@
         loadSocialData(token);
       } catch (error) {
         showError(error.message || 'Could not edit post.');
+      } finally {
+        setBusyState(triggerBtn, false, 'Saving...');
       }
     }
 
-    async function deletePost(postId) {
+    async function deletePost(postId, triggerBtn) {
       const token = localStorage.getItem('token');
       if (!token) {
         showError('Please sign in again.');
@@ -1162,6 +1371,7 @@
       }
 
       clearMessages();
+      setBusyState(triggerBtn, true, 'Deleting...');
 
       try {
         const response = await fetch(`${SOCIAL_API_URL}/posts/${encodeURIComponent(postId)}`, {
@@ -1178,10 +1388,12 @@
         loadSocialData(token);
       } catch (error) {
         showError(error.message || 'Could not delete post.');
+      } finally {
+        setBusyState(triggerBtn, false, 'Deleting...');
       }
     }
 
-    async function toggleLikePost(postId) {
+    async function toggleLikePost(postId, triggerBtn) {
       const token = localStorage.getItem('token');
       if (!token) {
         showError('Please sign in again.');
@@ -1189,6 +1401,7 @@
       }
 
       clearMessages();
+      setBusyState(triggerBtn, true, 'Updating...');
 
       try {
         const response = await fetch(`${SOCIAL_API_URL}/posts/${encodeURIComponent(postId)}/like`, {
@@ -1204,10 +1417,12 @@
         loadSocialData(token);
       } catch (error) {
         showError(error.message || 'Could not update like.');
+      } finally {
+        setBusyState(triggerBtn, false, 'Updating...');
       }
     }
 
-    async function addCommentToPost(postId, inputId) {
+    async function addCommentToPost(postId, inputId, triggerBtn) {
       const token = localStorage.getItem('token');
       if (!token) {
         showError('Please sign in again.');
@@ -1226,6 +1441,7 @@
       }
 
       clearMessages();
+      setBusyState(triggerBtn, true, 'Posting...');
 
       try {
         const response = await fetch(`${SOCIAL_API_URL}/posts/${encodeURIComponent(postId)}/comments`, {
@@ -1246,10 +1462,12 @@
         loadSocialData(token);
       } catch (error) {
         showError(error.message || 'Could not add comment.');
+      } finally {
+        setBusyState(triggerBtn, false, 'Posting...');
       }
     }
 
-    async function sendFriendRequest(toUserId) {
+    async function sendFriendRequest(toUserId, triggerBtn) {
       const token = localStorage.getItem('token');
       if (!token) {
         showError('Please sign in again.');
@@ -1257,6 +1475,7 @@
       }
 
       clearMessages();
+      setBusyState(triggerBtn, true, 'Sending...');
 
       try {
         const response = await fetch(`${SOCIAL_API_URL}/friend-request`, {
@@ -1277,10 +1496,12 @@
         loadSocialData(token);
       } catch (error) {
         showError(error.message || 'Could not send friend request.');
+      } finally {
+        setBusyState(triggerBtn, false, 'Sending...');
       }
     }
 
-    async function acceptFriendRequest(fromUserId) {
+    async function acceptFriendRequest(fromUserId, triggerBtn) {
       const token = localStorage.getItem('token');
       if (!token) {
         showError('Please sign in again.');
@@ -1288,6 +1509,7 @@
       }
 
       clearMessages();
+      setBusyState(triggerBtn, true, 'Accepting...');
 
       try {
         const response = await fetch(`${SOCIAL_API_URL}/friend-request/accept`, {
@@ -1308,6 +1530,8 @@
         loadSocialData(token);
       } catch (error) {
         showError(error.message || 'Could not accept friend request.');
+      } finally {
+        setBusyState(triggerBtn, false, 'Accepting...');
       }
     }
 
@@ -1318,6 +1542,7 @@
     }
 
     function logout(showMessage = true) {
+      stopBackgroundSync();
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       currentUserState = null;
@@ -1480,9 +1705,7 @@
 
       const email = document.getElementById('signin-email').value.trim();
       const password = document.getElementById('signin-password').value;
-
-      const loading = document.getElementById('signinLoading');
-      loading.style.display = 'block';
+      setButtonLoading('signinBtn', 'signinBtnLabel', true, 'Signing in...', 'Sign In');
 
       try {
         const response = await fetch(`${API_URL}/signin`, {
@@ -1502,7 +1725,7 @@
       } catch (error) {
         showError(error.message || 'Sign in failed.');
       } finally {
-        loading.style.display = 'none';
+        setButtonLoading('signinBtn', 'signinBtnLabel', false, 'Signing in...', 'Sign In');
       }
     });
 
@@ -1515,6 +1738,8 @@
 
       restoreSessionIfValid();
     });
+
+    window.addEventListener('beforeunload', stopBackgroundSync);
 
     document.getElementById('userSearch').addEventListener('input', (event) => {
       const query = event.target.value.trim().toLowerCase();

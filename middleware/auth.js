@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { markUserActive } = require('../config/presence');
 
 // Protect routes - check if user is authenticated
 const protect = (req, res, next) => {
@@ -20,6 +21,7 @@ const protect = (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
+    markUserActive(decoded.userId);
     next();
   } catch (error) {
     return res.status(401).json({

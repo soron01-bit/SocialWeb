@@ -6,8 +6,12 @@ const {
   getFriendRequests,
   acceptFriendRequest,
   getFriends,
+  getFriendsPresence,
+  presenceHeartbeat,
   getMessagesWithFriend,
   sendMessageToFriend,
+  reactToMessage,
+  deleteMessage,
   createPost,
   getFeed,
   getAllFeed,
@@ -26,8 +30,12 @@ router.get('/friend-requests', getFriendRequests);
 router.post('/friend-request', sendFriendRequest);
 router.post('/friend-request/accept', acceptFriendRequest);
 router.get('/friends', getFriends);
+router.get('/presence/friends', getFriendsPresence);
+router.post('/presence/heartbeat', presenceHeartbeat);
 router.get('/messages/:friendId', getMessagesWithFriend);
 router.post('/messages/:friendId', sendMessageToFriend);
+router.post('/messages/:friendId/:messageId/reaction', reactToMessage);
+router.delete('/messages/:friendId/:messageId', deleteMessage);
 router.post('/posts', createPost);
 router.get('/feed', getFeed);
 router.get('/feed/all', getAllFeed);

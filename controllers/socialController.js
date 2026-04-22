@@ -1,6 +1,28 @@
 const User = require('../models/User');
 const Post = require('../models/Post');
 const Message = require('../models/Message');
+const { markUserActive, getPresenceForUsers } = require('../config/presence');
+
+function formatMessageForUser(message, currentUserId) {
+  const reactions = Array.isArray(message.reactions) ? message.reactions : [];
+  const reactionMap = reactions.reduce((accumulator, item) => {
+    if (!item || !item.reaction) {
+      return accumulator;
+    }
+
+    accumulator[item.reaction] = (accumulator[item.reaction] || 0) + 1;
+    return accumulator;
+  }, {});
+
+  const myReaction = reactions.find((item) => item.userId === currentUserId)?.reaction || '';
+
+  return {
+    ...message,
+    fromSelf: message.fromUserId === currentUserId,
+    reactionMap,
+    myReaction
+  };
+}
 
 function canInteractWithPost(currentUser, post) {
   return post.authorId === currentUser.id || currentUser.friends.includes(post.authorId);
@@ -66,7 +88,20 @@ exports.listUsers = (req, res) => {
       };
     });
 
-  return res.status(200).json({ success: true, users });
+  const presenceMap = new Map(
+    getPresenceForUsers(users.map((user) => user.id)).map((presence) => [presence.userId, presence])
+  );
+
+  const usersWithPresence = users.map((user) => {
+    const presence = presenceMap.get(user.id) || { online: false, lastSeenAt: null };
+    return {
+      ...user,
+      online: presence.online,
+      lastSeenAt: presence.lastSeenAt
+    };
+  });
+
+  return res.status(200).json({ success: true, users: usersWithPresence });
 };
 
 exports.sendFriendRequest = (req, res) => {
@@ -122,18 +157,46 @@ exports.getFriends = (req, res) => {
     return res.status(404).json({ success: false, message: 'User not found' });
   }
 
-  const friends = currentUser.friends
+  const friendIds = currentUser.friends || [];
+  const presenceMap = new Map(
+    getPresenceForUsers(friendIds).map((presence) => [presence.userId, presence])
+  );
+
+  const friends = friendIds
     .map((friendId) => User.findById(friendId))
     .filter(Boolean)
-    .map((friend) => ({
-      id: friend.id,
-      name: friend.name,
-      username: friend.username,
-      email: friend.email,
-      photo: friend.photo
-    }));
+    .map((friend) => {
+      const presence = presenceMap.get(friend.id) || { online: false, lastSeenAt: null };
+
+      return {
+        id: friend.id,
+        name: friend.name,
+        username: friend.username,
+        email: friend.email,
+        photo: friend.photo,
+        online: presence.online,
+        lastSeenAt: presence.lastSeenAt
+      };
+    });
 
   return res.status(200).json({ success: true, friends });
+};
+
+exports.getFriendsPresence = (req, res) => {
+  const currentUser = User.findByIdWithPassword(req.user.userId);
+
+  if (!currentUser) {
+    return res.status(404).json({ success: false, message: 'User not found' });
+  }
+
+  const presence = getPresenceForUsers(currentUser.friends || []);
+
+  return res.status(200).json({ success: true, presence });
+};
+
+exports.presenceHeartbeat = (req, res) => {
+  markUserActive(req.user.userId);
+  return res.status(200).json({ success: true, active: true });
 };
 
 exports.getMessagesWithFriend = (req, res) => {
@@ -157,10 +220,9 @@ exports.getMessagesWithFriend = (req, res) => {
     return res.status(404).json({ success: false, message: 'Friend not found' });
   }
 
-  const messages = Message.getConversation(currentUser.id, friendId).map((message) => ({
-    ...message,
-    fromSelf: message.fromUserId === currentUser.id
-  }));
+  const messages = Message.getConversation(currentUser.id, friendId)
+    .filter((message) => !message.deletedBy.includes(currentUser.id))
+    .map((message) => formatMessageForUser(message, currentUser.id));
 
   return res.status(200).json({
     success: true,
@@ -215,10 +277,87 @@ exports.sendMessageToFriend = (req, res) => {
 
   return res.status(201).json({
     success: true,
-    message: {
-      ...message,
-      fromSelf: true
-    }
+    message: formatMessageForUser(message, currentUser.id)
+  });
+};
+
+exports.reactToMessage = (req, res) => {
+  const { friendId, messageId } = req.params;
+  const { reaction } = req.body;
+  const currentUser = User.findByIdWithPassword(req.user.userId);
+
+  if (!currentUser) {
+    return res.status(404).json({ success: false, message: 'User not found' });
+  }
+
+  if (!friendId || !messageId) {
+    return res.status(400).json({ success: false, message: 'friendId and messageId are required' });
+  }
+
+  if (!currentUser.friends.includes(friendId)) {
+    return res.status(403).json({ success: false, message: 'You can only react to friends messages' });
+  }
+
+  const message = Message.findById(messageId);
+
+  if (!message || message.conversationKey !== [currentUser.id, friendId].sort().join('__')) {
+    return res.status(404).json({ success: false, message: 'Message not found' });
+  }
+
+  if (message.deletedBy.includes(currentUser.id)) {
+    return res.status(404).json({ success: false, message: 'Message not found' });
+  }
+
+  const normalizedReaction = typeof reaction === 'string' ? reaction.trim() : '';
+  const allowedReactions = new Set(['👍', '❤️', '😂', '😮', '😢', '🔥']);
+
+  if (normalizedReaction && !allowedReactions.has(normalizedReaction)) {
+    return res.status(400).json({ success: false, message: 'Unsupported reaction' });
+  }
+
+  const updatedMessage = Message.setReaction(messageId, currentUser.id, normalizedReaction || '');
+
+  if (!updatedMessage) {
+    return res.status(404).json({ success: false, message: 'Message not found' });
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: formatMessageForUser(updatedMessage, currentUser.id)
+  });
+};
+
+exports.deleteMessage = (req, res) => {
+  const { friendId, messageId } = req.params;
+  const currentUser = User.findByIdWithPassword(req.user.userId);
+
+  if (!currentUser) {
+    return res.status(404).json({ success: false, message: 'User not found' });
+  }
+
+  if (!friendId || !messageId) {
+    return res.status(400).json({ success: false, message: 'friendId and messageId are required' });
+  }
+
+  if (!currentUser.friends.includes(friendId)) {
+    return res.status(403).json({ success: false, message: 'You can only delete friends messages' });
+  }
+
+  const message = Message.findById(messageId);
+
+  if (!message || message.conversationKey !== [currentUser.id, friendId].sort().join('__')) {
+    return res.status(404).json({ success: false, message: 'Message not found' });
+  }
+
+  const result = Message.deleteForUser(messageId, currentUser.id);
+
+  if (!result) {
+    return res.status(404).json({ success: false, message: 'Message not found' });
+  }
+
+  return res.status(200).json({
+    success: true,
+    deletedForEveryone: Boolean(result.deletedForEveryone)
   });
 };
 
